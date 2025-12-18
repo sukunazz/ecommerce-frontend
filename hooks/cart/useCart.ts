@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CartApi } from "@/lib/cart/cart";
-import { CartItem } from "@/lib/cart/types/types";
+import { CartItem } from "@/lib/cart/types/cartItem.types";
 
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>([]);
