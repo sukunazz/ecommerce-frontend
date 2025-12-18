@@ -11,7 +11,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ Check if user is logged in (COOKIE BASED)
   async function checkSession() {
     try {
       await authApi.me();
@@ -23,18 +22,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function login(email: string, password: string): Promise<boolean> {
+  async function login(email: string, password: string) {
     setLoading(true);
     setError(null);
 
     try {
       await authApi.login(email, password);
-      setIsAuthenticated(true);
-      return true;
+      await checkSession(); // 🔥 THIS IS THE KEY
     } catch (err: any) {
       setError(err.message || "Login failed");
       setIsAuthenticated(false);
-      return false;
     } finally {
       setLoading(false);
     }
@@ -50,7 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // ✅ IMPORTANT: check session on app load
   useEffect(() => {
     checkSession();
   }, []);
