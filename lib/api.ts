@@ -5,6 +5,7 @@ type ApiFetchOptions = RequestInit & {
 };
 
 export async function apiFetch(path: string, options: ApiFetchOptions = {}) {
+  console.log("API BASE URL:", process.env.API_URL);
   const res = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include",
     headers: {
