@@ -33,4 +33,9 @@ export const authApi = {
       method: "POST",
     });
   },
+  me: () => {
+    return apiFetch("/auth/me", {
+      credentials: "include",
+    });
+  },
 };

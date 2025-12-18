@@ -11,9 +11,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  async function refresh() {
+  // ✅ Check if user is logged in (COOKIE BASED)
+  async function checkSession() {
     try {
-      await authApi.refreshToken();
+      await authApi.me();
       setIsAuthenticated(true);
     } catch {
       setIsAuthenticated(false);
@@ -28,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await authApi.login(email, password);
-      await refresh();
+      await checkSession(); // ✅ FIXED
     } catch (err: any) {
       setError(err.message || "Login failed");
       setIsAuthenticated(false);
@@ -47,8 +48,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // ✅ IMPORTANT: check session on app load
   useEffect(() => {
-    refresh();
+    checkSession();
   }, []);
 
   return (
@@ -59,6 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error,
         login,
         logout,
+        checkSession,
       }}
     >
       {children}

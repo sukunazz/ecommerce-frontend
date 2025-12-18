@@ -4,4 +4,5 @@ export type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   error: string | null;
+  checkSession: () => Promise<void>;
 };
