@@ -22,16 +22,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string): Promise<boolean> {
     setLoading(true);
     setError(null);
 
     try {
       await authApi.login(email, password);
-      await checkSession(); // 🔥 THIS IS THE KEY
+      await checkSession(); // 🔴 THIS WAS MISSING
+      return true;
     } catch (err: any) {
       setError(err.message || "Login failed");
       setIsAuthenticated(false);
+      return false;
     } finally {
       setLoading(false);
     }

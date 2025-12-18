@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // ✅ ONLY redirect when auth state changes
   useEffect(() => {
     if (isAuthenticated) {
       router.replace("/");
@@ -22,7 +23,9 @@ export default function LoginPage() {
     await login(email, password);
   }
 
-  if (loading) return <p>Checking session...</p>;
+  if (loading) {
+    return <p>Checking session...</p>;
+  }
 
   return (
     <div style={{ maxWidth: 400, margin: "50px auto" }}>
