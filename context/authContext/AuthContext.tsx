@@ -29,7 +29,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await authApi.login(email, password);
-      await checkSession(); // ✅ FIXED
+      await checkSession();
+      return true; // ✅ FIXED
     } catch (err: any) {
       setError(err.message || "Login failed");
       setIsAuthenticated(false);

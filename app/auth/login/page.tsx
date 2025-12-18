@@ -2,7 +2,7 @@
 
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,15 +17,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
 
   // Redirect if already logged in
-  useEffect(() => {
-    if (!authLoading && isAuthenticated) {
-      router.push("/");
-    }
-  }, [isAuthenticated, authLoading, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await login(email, password);
+
+    const success = await login(email, password);
+
+    if (success) {
+      router.push("/");
+    }
   }
 
   if (authLoading) {
