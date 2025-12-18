@@ -24,7 +24,7 @@ export default function LoginPage() {
     const success = await login(email, password);
 
     if (success) {
-      router.push("/");
+      router.replace("/");
     }
   }
 
