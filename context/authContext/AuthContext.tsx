@@ -1,3 +1,4 @@
+// frontend/src/context/authContext/AuthContext.tsx
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
@@ -22,31 +23,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function login(email: string, password: string): Promise<boolean> {
-    setLoading(true);
+  async function login(email: string, password: string) {
     setError(null);
 
     try {
       await authApi.login(email, password);
-      await checkSession(); // 🔴 THIS WAS MISSING
+      await checkSession(); // ✅ single source of truth
       return true;
     } catch (err: any) {
       setError(err.message || "Login failed");
       setIsAuthenticated(false);
       return false;
-    } finally {
-      setLoading(false);
     }
   }
 
   async function logout() {
-    setLoading(true);
-    try {
-      await authApi.logout();
-      setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
+    await authApi.logout();
+    setIsAuthenticated(false);
   }
 
   useEffect(() => {

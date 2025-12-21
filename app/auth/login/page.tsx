@@ -11,21 +11,18 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ✅ ONLY redirect when auth state changes
   useEffect(() => {
-    if (isAuthenticated) {
+    if (!loading && isAuthenticated) {
       router.replace("/");
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, loading, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     await login(email, password);
   }
 
-  if (loading) {
-    return <p>Checking session...</p>;
-  }
+  if (loading) return <p>Checking session...</p>;
 
   return (
     <div style={{ maxWidth: 400, margin: "50px auto" }}>
@@ -34,7 +31,6 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit}>
         <input
           type="email"
-          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -42,15 +38,12 @@ export default function LoginPage() {
 
         <input
           type="password"
-          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
         />
 
-        <button disabled={loading}>
-          {loading ? "Logging in..." : "Login"}
-        </button>
+        <button type="submit">Login</button>
 
         {error && <p style={{ color: "red" }}>{error}</p>}
       </form>
