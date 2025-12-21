@@ -5,7 +5,10 @@ export function middleware(req: NextRequest) {
   const token = req.cookies.get("access_token");
   const { pathname } = req.nextUrl;
 
-  console.log("🔵 Middleware:", pathname, "| Has token:", !!token);
+  console.log("🔍 Middleware Debug:");
+  console.log("  📍 Path:", pathname);
+  console.log("  🔑 Token exists:", !!token);
+  console.log("  🍪 Token value:", token?.value?.substring(0, 20) + "...");
 
   // 1️⃣ Allow static files and API routes (no auth check)
   if (
@@ -13,6 +16,7 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.startsWith("/favicon")
   ) {
+    console.log("  ✅ Static file/API - allowing");
     return NextResponse.next();
   }
 
@@ -35,27 +39,32 @@ export function middleware(req: NextRequest) {
   ];
 
   const isPublicRoute = publicRoutes.some(
-    (route) => pathname === route || pathname.startsWith(route)
+    (route) => pathname === route || pathname.startsWith(route + "/")
   );
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
   const isProtectedRoute = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
 
+  console.log("  🔍 Route type:");
+  console.log("    - Public:", isPublicRoute);
+  console.log("    - Auth:", isAuthRoute);
+  console.log("    - Protected:", isProtectedRoute);
+
   // 3️⃣ If logged in and trying to access login/register, redirect to home
   if (token && isAuthRoute) {
-    console.log("🔄 Logged in user accessing auth page → redirect to home");
+    console.log("  🔄 Logged in user accessing auth page → redirect to home");
     return NextResponse.redirect(new URL("/", req.url));
   }
 
   // 4️⃣ If NOT logged in and trying to access protected route, redirect to login
   if (!token && isProtectedRoute) {
-    console.log("🔄 Guest accessing protected route → redirect to login");
+    console.log("  🔄 Guest accessing protected route → redirect to login");
     return NextResponse.redirect(new URL("/auth/login", req.url));
   }
 
   // 5️⃣ Allow everything else (including public routes for both guests and logged-in users)
-  console.log("✅ Access allowed");
+  console.log("  ✅ Access allowed - continuing");
   return NextResponse.next();
 }
 
