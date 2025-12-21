@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await authApi.login(email, password);
-      await checkSession(); // ✅ single source of truth
+      await checkSession();
       return true;
     } catch (err: any) {
       setError(err.message || "Login failed");
@@ -38,8 +38,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function logout() {
-    await authApi.logout();
-    setIsAuthenticated(false);
+    try {
+      await authApi.logout();
+      setIsAuthenticated(false);
+      // Redirect handled by calling component
+    } catch (err) {
+      console.error("Logout error:", err);
+      setIsAuthenticated(false);
+    }
   }
 
   useEffect(() => {

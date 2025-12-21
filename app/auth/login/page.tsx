@@ -2,29 +2,38 @@
 "use client";
 
 import { useState } from "react";
-import { useAuthContext } from "@/context/authContext/AuthContext";
+import { useRouter } from "next/navigation";
+import { authApi } from "@/lib/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const { login, error } = useAuthContext();
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
 
     try {
-      const success = await login(email, password);
+      // Call login API
+      await authApi.login(email, password);
 
-      // ℹ️ Navigation now handled in AuthContext
-      if (!success) {
-        console.error("Login failed");
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-    } finally {
+      console.log("✅ Login successful");
+
+      // Verify session
+      await authApi.me();
+
+      console.log("✅ Session verified");
+
+      // Force redirect
+      window.location.href = "/dashboard"; // 🔥 Use window.location for guaranteed redirect
+    } catch (err: any) {
+      console.error("❌ Login error:", err);
+      setError(err.message || "Login failed");
       setIsLoading(false);
     }
   };
