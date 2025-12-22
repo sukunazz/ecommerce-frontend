@@ -2,8 +2,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { authApi } from "@/lib/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -11,7 +9,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const router = useRouter();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,25 +17,43 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      console.log("🔐 Attempting login...");
+      console.log("🔐 Logging in...");
 
-      // Call login API
-      await authApi.login(email, password);
+      // Step 1: Login
+      const loginResponse = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-      console.log("✅ Login successful");
-
-      // Verify session
-      try {
-        await authApi.me();
-        console.log("✅ Session verified");
-      } catch (err) {
-        console.log("⚠️ Session check failed, but continuing...");
+      if (!loginResponse.ok) {
+        const errorText = await loginResponse.text();
+        throw new Error(errorText || "Login failed");
       }
 
-      console.log("🔄 Redirecting to dashboard...");
+      const loginData = await loginResponse.json();
+      console.log("✅ Login successful:", loginData);
 
-      // Force redirect with full page reload
-      window.location.href = "/dashboard";
+      // Step 2: Verify by calling /auth/me
+      const meResponse = await fetch(`${API_URL}/auth/me`, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (meResponse.ok) {
+        const userData = await meResponse.json();
+        console.log("✅ User authenticated:", userData);
+      }
+
+      // Step 3: FORCE REDIRECT (this will definitely work)
+      console.log("🔄 Redirecting to dashboard in 3... 2... 1...");
+
+      // Try multiple redirect methods to ensure it works
+      setTimeout(() => {
+        console.log("🚀 REDIRECTING NOW!");
+        window.location.href = "/dashboard";
+      }, 500);
     } catch (err: any) {
       console.error("❌ Login error:", err);
       setError(err.message || "Login failed");
@@ -61,6 +77,12 @@ export default function LoginPage() {
             </div>
           )}
 
+          {isLoading && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
+              Logging in... Redirecting to dashboard...
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
               <label
@@ -77,7 +99,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 disabled={isLoading}
               />
             </div>
@@ -97,7 +119,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-900"
                 disabled={isLoading}
               />
             </div>
@@ -111,6 +133,11 @@ export default function LoginPage() {
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
+
+        <div className="text-center text-sm text-gray-600">
+          <p>Test credentials:</p>
+          <p className="font-mono">daemon200000@gmail.com</p>
+        </div>
       </div>
     </div>
   );
