@@ -19,7 +19,7 @@ export default function ProductDetailsPage() {
 
   const handleAddToCart = async (productId: number) => {
     if (!isAuthenticated) {
-      router.push("/login");
+      router.push("auth/login");
       return;
     }
 
