@@ -19,7 +19,7 @@ export default function RequireAuth({
   }, [loading, isAuthenticated, router]);
 
   if (loading) {
-    return <p className="p-6">Checking authentication...</p>;
+    return <p className="p-6 text-center">loadin....</p>;
   }
 
   if (!isAuthenticated) {
