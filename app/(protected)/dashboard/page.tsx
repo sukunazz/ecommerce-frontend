@@ -12,7 +12,7 @@ export default function DashboardPage() {
   // 🔐 Protect route
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.replace("/auth/login");
+      router.replace("/login");
     }
   }, [loading, isAuthenticated, router]);
 
@@ -76,7 +76,7 @@ export default function DashboardPage() {
           <h3 className="text-lg font-semibold mb-4">Quick Navigation</h3>
 
           <div className="grid sm:grid-cols-2 gap-4">
-            <NavLink href="/" label="🏠 Home" />
+            <NavLink href="/home" label="🏠 Home" />
             <NavLink href="/profile" label="👤 Profile" />
 
             {(user.role === "admin" || user.role === "superadmin") && (
