@@ -14,7 +14,7 @@ export default function RequireAuth({
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.replace("/");
+      router.replace("/home");
     }
   }, [loading, isAuthenticated, router]);
 
