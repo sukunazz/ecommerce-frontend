@@ -1,8 +1,7 @@
-// frontend/src/app/auth/success/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import Link from "next/link";
 
 export default function LoginSuccessPage() {
   const [countdown, setCountdown] = useState(3);
@@ -10,7 +9,6 @@ export default function LoginSuccessPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
-    // Check if we can access /auth/me
     const checkAuth = async () => {
       try {
         const response = await fetch(`${API_URL}/auth/me`, {
@@ -22,24 +20,20 @@ export default function LoginSuccessPage() {
           console.log("✅ Auth check passed:", data);
           setCanAccess(true);
         } else {
-          console.log("❌ Auth check failed");
           setCanAccess(false);
         }
-      } catch (err) {
-        console.error("Error:", err);
+      } catch {
         setCanAccess(false);
       }
     };
 
     checkAuth();
 
-    // Countdown timer
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          // Redirect with full page reload
-          window.location.href = "/dashboard";
+          window.location.href = "/dashboard"; // full reload is OK
           return 0;
         }
         return prev - 1;
@@ -86,24 +80,19 @@ export default function LoginSuccessPage() {
         </div>
 
         <div className="space-y-3">
-          <a
+          <Link
             href="/dashboard"
             className="block w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Go to Dashboard Now
-          </a>
+          </Link>
 
           <Link
-            to="/"
+            href="/"
             className="block w-full px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
           >
             Go to Home
           </Link>
-        </div>
-
-        <div className="mt-6 text-xs text-gray-500">
-          <p>If you&apos;re not redirected automatically,</p>
-          <p>click the button above.</p>
         </div>
       </div>
     </div>
