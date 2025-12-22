@@ -17,9 +17,6 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      console.log("🔐 Logging in...");
-
-      // Login
       const loginResponse = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         credentials: "include",
@@ -35,7 +32,6 @@ export default function LoginPage() {
       const loginData = await loginResponse.json();
       console.log("✅ Login successful:", loginData);
 
-      // Verify authentication
       console.log("🔍 Verifying authentication...");
       const meResponse = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
@@ -46,10 +42,7 @@ export default function LoginPage() {
         const userData = await meResponse.json();
         console.log("✅ User authenticated:", userData);
 
-        // Redirect to success page which will then redirect to dashboard
-        // This gives cookies time to fully propagate
-        console.log("🚀 Redirecting to success page...");
-        window.location.href = "/auth/success";
+        window.location.href = "/dashboard";
       } else {
         throw new Error("Authentication verification failed");
       }
@@ -135,11 +128,6 @@ export default function LoginPage() {
             {isLoading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-
-        <div className="text-center text-sm text-gray-600">
-          <p>Test credentials:</p>
-          <p className="font-mono">daemon200000@gmail.com</p>
-        </div>
       </div>
     </div>
   );
