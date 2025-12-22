@@ -16,8 +16,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authApi.me();
       setIsAuthenticated(true);
+      console.log("✅ User is authenticated");
     } catch {
       setIsAuthenticated(false);
+      console.log("❌ User is not authenticated");
     } finally {
       setLoading(false);
     }
@@ -41,10 +43,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authApi.logout();
       setIsAuthenticated(false);
-      // Redirect handled by calling component
+      window.location.href = "/";
     } catch (err) {
       console.error("Logout error:", err);
       setIsAuthenticated(false);
+      window.location.href = "/";
     }
   }
 

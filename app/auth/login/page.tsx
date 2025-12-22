@@ -1,4 +1,4 @@
-// frontend/src/app/login/page.tsx
+// frontend/src/app/auth/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -19,18 +19,25 @@ export default function LoginPage() {
     setError(null);
 
     try {
+      console.log("🔐 Attempting login...");
+
       // Call login API
       await authApi.login(email, password);
 
       console.log("✅ Login successful");
 
       // Verify session
-      await authApi.me();
+      try {
+        await authApi.me();
+        console.log("✅ Session verified");
+      } catch (err) {
+        console.log("⚠️ Session check failed, but continuing...");
+      }
 
-      console.log("✅ Session verified");
+      console.log("🔄 Redirecting to dashboard...");
 
-      // Force redirect
-      window.location.href = "/dashboard"; // 🔥 Use window.location for guaranteed redirect
+      // Force redirect with full page reload
+      window.location.href = "/dashboard";
     } catch (err: any) {
       console.error("❌ Login error:", err);
       setError(err.message || "Login failed");
