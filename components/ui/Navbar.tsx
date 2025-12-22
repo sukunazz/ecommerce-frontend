@@ -11,7 +11,7 @@ export function Navbar() {
 
   async function handleLogout() {
     await logout();
-    router.push("/login");
+    router.push("auth/login");
   }
 
   return (
@@ -39,17 +39,12 @@ export function Navbar() {
           {/* 🔐 Auth-based UI */}
           {!isAuthenticated ? (
             <>
-              <Link href="/login">Login</Link>
-              <Link href="/register">Register</Link>
+              <Link href="auth/login">Login</Link>
+              <Link href="auth/register">Register</Link>
             </>
           ) : (
             <>
               <span className="text-sm opacity-80">{user?.email}</span>
-
-              {/* Admin link */}
-              <RequireRole allowed={["admin", "superadmin"]}>
-                <Link href="/admin/products">Admin</Link>
-              </RequireRole>
 
               <button
                 onClick={handleLogout}
