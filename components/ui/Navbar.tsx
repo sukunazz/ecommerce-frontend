@@ -28,6 +28,10 @@ export function Navbar() {
             Home
           </Link>
 
+          <Link href="/products" className="hover:text-blue-300">
+            Products
+          </Link>
+
           <Link href="/about" className="hover:text-blue-300">
             About
           </Link>
