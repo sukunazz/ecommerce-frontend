@@ -1,25 +1,30 @@
-// frontend/src/context/authContext/AuthContext.tsx
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { authApi } from "@/lib/auth";
-import { AuthContextType } from "./type";
+import { AuthContextType, User } from "./type";
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   async function checkSession() {
     try {
-      await authApi.me();
-      setIsAuthenticated(true);
-      console.log("✅ User is authenticated");
+      const me = await authApi.me();
+      setUser(me);
+      console.log("✅ Authenticated user:", me);
     } catch {
-      setIsAuthenticated(false);
-      console.log("❌ User is not authenticated");
+      setUser(null);
+      console.log("❌ No active session");
     } finally {
       setLoading(false);
     }
@@ -34,7 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return true;
     } catch (err: any) {
       setError(err.message || "Login failed");
-      setIsAuthenticated(false);
+      setUser(null);
       return false;
     }
   }
@@ -42,11 +47,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function logout() {
     try {
       await authApi.logout();
-      setIsAuthenticated(false);
-      window.location.href = "/";
-    } catch (err) {
-      console.error("Logout error:", err);
-      setIsAuthenticated(false);
+    } finally {
+      setUser(null);
       window.location.href = "/";
     }
   }
@@ -58,7 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider
       value={{
-        isAuthenticated,
+        user,
+        isAuthenticated: !!user,
         loading,
         error,
         login,
