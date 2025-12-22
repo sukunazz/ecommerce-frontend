@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/context/authContext/AuthContext";
-import { RequireRole } from "@/components/auth/RequireRole";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthContext();
@@ -11,51 +10,68 @@ export function Navbar() {
 
   async function handleLogout() {
     await logout();
-    router.push("/");
+    router.replace("/home");
   }
 
   return (
-    <nav className="fixed top-0 left-0 w-full z-20 backdrop-blur-lg bg-white/10 border-b border-white/20">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-3 text-white">
+    <nav
+      className="
+        fixed top-0 left-0 w-full z-50
+        bg-black/70 backdrop-blur-md
+        border-b border-white/10
+        shadow-lg
+      "
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 text-white">
         {/* Logo */}
-        <div className="text-xl font-semibold tracking-wide">
-          <Link href="/">Oracle</Link>
-        </div>
+        <Link href="/" className="text-xl font-semibold tracking-wide">
+          Oracle
+        </Link>
 
         {/* Links */}
-        <div className="flex items-center space-x-8 text-lg">
-          <Link href="/" className="hover:text-blue-300">
+        <div className="flex items-center space-x-8 text-sm md:text-base">
+          <Link href="/home" className="hover:text-gray-300 transition">
             Home
           </Link>
 
-          <Link href="/products" className="hover:text-blue-300">
+          <Link href="/products" className="hover:text-gray-300 transition">
             Products
           </Link>
 
-          <Link href="/about" className="hover:text-blue-300">
-            About
-          </Link>
-
-          <Link href="/contact" className="hover:text-blue-300">
-            Contact
-          </Link>
-
-          {/* 🔐 Auth-based UI */}
-          {!isAuthenticated ? (
+          {isAuthenticated ? (
             <>
-              <Link href="auth/login">Login</Link>
-              <Link href="auth/register">Register</Link>
-            </>
-          ) : (
-            <>
-              <span className="text-sm opacity-80">{user?.email}</span>
+              <Link
+                href="/dashboard"
+                className="hover:text-gray-300 transition"
+              >
+                Dashboard
+              </Link>
+
+              <span className="text-xs opacity-70 hidden sm:block">
+                {user?.email}
+              </span>
 
               <button
                 onClick={handleLogout}
-                className="px-3 py-1 border rounded hover:bg-white/20"
+                className="px-4 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition"
               >
                 Logout
               </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="hover:text-gray-300 transition"
+              >
+                Login
+              </Link>
+              <Link
+                href="/auth/register"
+                className="px-4 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition"
+              >
+                Register
+              </Link>
             </>
           )}
         </div>
