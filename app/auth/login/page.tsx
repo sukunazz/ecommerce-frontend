@@ -29,10 +29,6 @@ export default function LoginPage() {
         throw new Error(errorText || "Login failed");
       }
 
-      const loginData = await loginResponse.json();
-      console.log("✅ Login successful:", loginData);
-
-      console.log("🔍 Verifying authentication...");
       const meResponse = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
@@ -40,7 +36,6 @@ export default function LoginPage() {
 
       if (meResponse.ok) {
         const userData = await meResponse.json();
-        console.log("✅ User authenticated:", userData);
 
         window.location.href = "/dashboard";
       } else {
