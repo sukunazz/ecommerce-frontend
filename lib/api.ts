@@ -1,49 +1,75 @@
 // frontend/src/lib/api.ts
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-type ApiFetchOptions = RequestInit & {
-  skipAuthRedirect?: boolean;
-};
+if (!API_BASE_URL) {
+  throw new Error("❌ NEXT_PUBLIC_API_URL is not defined");
+}
 
-export async function apiFetch(path: string, options: ApiFetchOptions = {}) {
-  // 🔥 Fixed: Use NEXT_PUBLIC_API_URL, not API_URL
-  console.log("🔵 API_BASE_URL:", API_BASE_URL);
-  console.log("🔵 Full URL:", `${API_BASE_URL}${path}`);
+let isRefreshing = false;
+let refreshPromise: Promise<void> | null = null;
 
-  if (!API_BASE_URL) {
-    console.error("❌ NEXT_PUBLIC_API_URL is not defined!");
-    throw new Error("API URL is not configured");
+async function refreshAccessToken() {
+  if (!refreshPromise) {
+    refreshPromise = fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Refresh token invalid");
+        }
+      })
+      .finally(() => {
+        refreshPromise = null;
+        isRefreshing = false;
+      });
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    credentials: "include", // Already set globally
-    cache: "no-store",
-    headers: {
-      "Content-Type": "application/json",
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+  return refreshPromise;
+}
 
-  console.log("🔵 Response status:", res.status);
+export async function apiFetch(path: string, options: RequestInit = {}) {
+  const doFetch = () =>
+    fetch(`${API_BASE_URL}${path}`, {
+      credentials: "include",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...(options.headers || {}),
+      },
+      ...options,
+    });
 
+  let res = await doFetch();
+
+  // ✅ If access token expired, try refresh ONCE
   if (res.status === 401) {
-    console.error("❌ 401 Unauthorized");
-    throw new Error("Unauthorized");
+    if (!isRefreshing) {
+      isRefreshing = true;
+      try {
+        await refreshAccessToken();
+      } catch {
+        throw new Error("Unauthorized");
+      }
+    } else {
+      // wait for ongoing refresh
+      await refreshPromise;
+    }
+
+    // 🔁 retry original request
+    res = await doFetch();
   }
 
   if (!res.ok) {
     const text = await res.text();
-    console.error("❌ API Error:", text);
-    throw new Error(text || "Something went wrong");
+    throw new Error(text || "Request failed");
   }
 
+  // handle empty responses
   try {
-    const data = await res.json();
-    console.log("✅ Response data:", data);
-    return data;
-  } catch (err) {
-    console.log("⚠️ No JSON response");
+    return await res.json();
+  } catch {
     return null;
   }
 }
