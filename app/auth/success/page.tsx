@@ -38,7 +38,7 @@ export default function LoginSuccessPage() {
         }
         return prev - 1;
       });
-    }, 1000);
+    }, 5000);
 
     return () => clearInterval(timer);
   }, [API_URL]);
