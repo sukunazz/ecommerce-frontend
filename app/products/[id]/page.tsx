@@ -1,15 +1,17 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useProduct } from "@/hooks/product/useProductById";
 import { useCart } from "@/hooks/cart/useCart";
-import router from "next/router";
 import { useAuthContext } from "@/context/authContext/AuthContext";
+import { Card } from "@/components/ui/Card/ProductCard";
 
 export default function ProductDetailsPage() {
-  const params = useParams();
-  const productId = Number(params.id);
-  const isAuthenticated = useAuthContext();
+  const { id } = useParams();
+  const router = useRouter();
+  const productId = Number(id);
+
+  const { isAuthenticated } = useAuthContext();
   const { product, loading, error } = useProduct(productId);
   const { addToCart } = useCart();
 
@@ -17,26 +19,36 @@ export default function ProductDetailsPage() {
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!product) return <p className="p-6">Product not found</p>;
 
-  const handleAddToCart = async (productId: number) => {
+  const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      router.push("auth/login");
+      router.push("/auth/login");
       return;
     }
 
-    await addToCart(productId, 1);
+    await addToCart(product.id, 1);
   };
-  return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold">{product.name}</h1>
-      <p className="mt-2 text-gray-700">{product.description}</p>
-      <p className="mt-4 font-semibold">${product.price}</p>
 
-      <button
-        onClick={() => handleAddToCart(product.id)}
-        className="mt-6 bg-black text-white px-6 py-2 rounded"
-      >
-        Add to Cart
-      </button>
+  return (
+    <div className="max-w-3xl mx-auto px-6 py-10">
+      <Card>
+        <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+
+        <p className="text-gray-400 mb-6">{product.description}</p>
+
+        <p className="text-2xl font-semibold mb-6">${product.price}</p>
+
+        <button
+          onClick={handleAddToCart}
+          className="
+            w-full bg-black text-white
+            py-3 rounded-lg
+            hover:bg-gray-800
+            transition
+          "
+        >
+          Add to Cart
+        </button>
+      </Card>
     </div>
   );
 }
