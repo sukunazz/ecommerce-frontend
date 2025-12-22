@@ -3,10 +3,20 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const token = req.cookies.get("access_token");
   const { pathname } = req.nextUrl;
 
-  console.log("🔍 MIDDLEWARE:", pathname, "| Token:", !!token);
+  // Get the token from cookies
+  const accessToken = req.cookies.get("access_token");
+  const refreshToken = req.cookies.get("refresh_token");
+
+  console.log("🔍 MIDDLEWARE CHECK:");
+  console.log("  📍 Path:", pathname);
+  console.log("  🍪 access_token exists:", !!accessToken);
+  console.log("  🍪 refresh_token exists:", !!refreshToken);
+  console.log(
+    "  🍪 access_token value:",
+    accessToken?.value?.substring(0, 20) + "..."
+  );
 
   // Skip middleware for static files and API routes
   if (
@@ -14,16 +24,17 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/api") ||
     pathname.includes(".")
   ) {
+    console.log("  ✅ Static/API - skipping");
     return NextResponse.next();
   }
 
   // Auth routes: /auth/login, /auth/register, /auth/verify
   if (pathname.startsWith("/auth")) {
-    if (token) {
-      console.log("🔄 Already logged in, redirecting to home");
+    if (accessToken) {
+      console.log("  🔄 Already logged in, redirecting to home");
       return NextResponse.redirect(new URL("/", req.url));
     }
-    console.log("✅ Allowing auth page access");
+    console.log("  ✅ Auth page - allowing access");
     return NextResponse.next();
   }
 
@@ -35,16 +46,16 @@ export function middleware(req: NextRequest) {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/settings")
   ) {
-    if (!token) {
-      console.log("🔄 No token, redirecting to login");
+    if (!accessToken) {
+      console.log("  ❌ No token - redirecting to login");
       return NextResponse.redirect(new URL("/auth/login", req.url));
     }
-    console.log("✅ Token exists, allowing protected route");
+    console.log("  ✅ Token exists - allowing protected route");
     return NextResponse.next();
   }
 
   // All other routes (/, /about, /products, /contact, etc.) are public
-  console.log("✅ Public route, allowing access");
+  console.log("  ✅ Public route - allowing");
   return NextResponse.next();
 }
 

@@ -19,7 +19,7 @@ export default function LoginPage() {
     try {
       console.log("🔐 Logging in...");
 
-      // Step 1: Login
+      // Login
       const loginResponse = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         credentials: "include",
@@ -35,7 +35,8 @@ export default function LoginPage() {
       const loginData = await loginResponse.json();
       console.log("✅ Login successful:", loginData);
 
-      // Step 2: Verify by calling /auth/me
+      // Verify authentication
+      console.log("🔍 Verifying authentication...");
       const meResponse = await fetch(`${API_URL}/auth/me`, {
         method: "GET",
         credentials: "include",
@@ -44,16 +45,14 @@ export default function LoginPage() {
       if (meResponse.ok) {
         const userData = await meResponse.json();
         console.log("✅ User authenticated:", userData);
+
+        // Redirect to success page which will then redirect to dashboard
+        // This gives cookies time to fully propagate
+        console.log("🚀 Redirecting to success page...");
+        window.location.href = "/auth/success";
+      } else {
+        throw new Error("Authentication verification failed");
       }
-
-      // Step 3: FORCE REDIRECT (this will definitely work)
-      console.log("🔄 Redirecting to dashboard in 3... 2... 1...");
-
-      // Try multiple redirect methods to ensure it works
-      setTimeout(() => {
-        console.log("🚀 REDIRECTING NOW!");
-        window.location.href = "/dashboard";
-      }, 500);
     } catch (err: any) {
       console.error("❌ Login error:", err);
       setError(err.message || "Login failed");
@@ -79,7 +78,10 @@ export default function LoginPage() {
 
           {isLoading && (
             <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
-              Logging in... Redirecting to dashboard...
+              <p className="font-semibold">Logging in...</p>
+              <p className="text-sm mt-1">
+                Please wait while we verify your credentials.
+              </p>
             </div>
           )}
 
