@@ -60,14 +60,11 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link
-                href="/auth/login"
-                className="hover:text-gray-300 transition"
-              >
+              <Link href="/login" className="hover:text-gray-300 transition">
                 Login
               </Link>
               <Link
-                href="/auth/register"
+                href="/register"
                 className="px-4 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition"
               >
                 Register
