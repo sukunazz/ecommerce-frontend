@@ -8,7 +8,7 @@ import { useCart } from "@/hooks/cart/useCart";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthContext();
-  const { cart } = useCart(); // 👈 assumes cart.items[]
+  const { items } = useCart(); // 👈 assumes cart.items[]
   const router = useRouter();
 
   async function handleLogout() {
@@ -17,8 +17,7 @@ export function Navbar() {
   }
 
   // ✅ total quantity in cart
-  const cartCount =
-    cart?.items?.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
+  const cartCount = items.reduce((sum, item) => sum + item.quantity, 0) ?? 0;
 
   return (
     <nav
