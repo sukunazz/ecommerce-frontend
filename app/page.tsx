@@ -1,30 +1,19 @@
-// src/app/page.tsx
-"use client";
+import Link from "next/link";
 
-import { useAuthContext } from "@/context/authContext/AuthContext";
-import Header from "@/components/home/Header";
-import Body from "@/components/home/body";
-import Footer from "@/components/home/footer";
-
-export default function Home() {
-  const { isAuthenticated, loading } = useAuthContext();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
+export default function LandingPage() {
   return (
-    <div>
-      <Header isAuthenticated={isAuthenticated} />
-      <Body isAuthenticated={isAuthenticated} />
-      <Footer />
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center space-y-6">
+      <h1 className="text-4xl font-bold">Welcome to Oracle</h1>
+      <p className="text-gray-600 max-w-md">
+        Discover products, manage your cart, and access your dashboard.
+      </p>
+
+      <Link
+        href="/home"
+        className="px-6 py-3 bg-black text-white rounded hover:bg-gray-800 transition"
+      >
+        Go to Home
+      </Link>
     </div>
   );
 }
