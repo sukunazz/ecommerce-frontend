@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useProduct } from "@/hooks/product/useProductById";
-import { useCart } from "@/hooks/cart/useCart";
+import { useCart } from "@/context/cart/CartContext";
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
 
