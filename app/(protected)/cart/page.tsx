@@ -27,11 +27,7 @@ export default function CartPage() {
       return;
     }
 
-    /**
-     * We DO NOT create order here
-     * We only go to checkout page
-     */
-    router.push("/checkout");
+    router.push(`/checkout?items=${selected.join(",")}`);
   };
 
   return (
