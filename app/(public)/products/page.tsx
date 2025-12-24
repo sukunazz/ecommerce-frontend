@@ -33,7 +33,7 @@ export default function ProductsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex-col min-h-screen max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, idx) => (
           <div key={idx} className="space-y-2">
             <Skeleton height="150px" width="100%" />

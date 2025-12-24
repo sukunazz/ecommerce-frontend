@@ -6,7 +6,7 @@ interface BodyProps {
 
 export default function Body({ isAuthenticated }: BodyProps) {
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-amber-50 via-amber-50 to-amber-200 flex flex-col md:flex-row items-center px-10 py-20 text-gray-800 gap-10">
+    <div className="min-h-screen w-full flex flex-col md:flex-row items-center px-10 py-20 text-gray-800 gap-10">
       {/* Left Section */}
       <div className="flex-1 space-y-6">
         <h2 className="text-5xl md:text-6xl font-bold drop-shadow-lg text-gray-900">
