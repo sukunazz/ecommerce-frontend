@@ -3,13 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/cart/CartContext";
-import { apiFetch } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { items, total, loading, error, updateQuantity, removeItem } =
     useCart();
 
   const [selected, setSelected] = useState<number[]>([]);
+  const router = useRouter();
 
   if (loading) return <p className="p-6">Loading cart...</p>;
   if (error) return <p className="p-6 text-red-500">{error}</p>;
@@ -20,33 +21,17 @@ export default function CartPage() {
     );
   };
 
-  const checkout = async () => {
+  const goToCheckout = () => {
     if (selected.length === 0) {
       alert("Select at least one item");
       return;
     }
 
-    try {
-      // 1️⃣ Create order from selected cart items
-      const order = await apiFetch("/orders/checkout", {
-        method: "POST",
-        body: JSON.stringify({
-          address: "Default address",
-          cartItemIds: selected,
-        }),
-      });
-
-      // 2️⃣ Create Stripe checkout session
-      const payment = await apiFetch(`/payments/pay/${order.id}`, {
-        method: "POST",
-      });
-
-      // 3️⃣ Redirect to Stripe Checkout
-      window.location.href = payment.checkoutUrl;
-    } catch (err) {
-      console.error(err);
-      alert("Checkout failed");
-    }
+    /**
+     * We DO NOT create order here
+     * We only go to checkout page
+     */
+    router.push("/checkout");
   };
 
   return (
@@ -57,7 +42,7 @@ export default function CartPage() {
         {items.map((item) => (
           <div
             key={item.id}
-            className="flex items-center justify-between border rounded-lg p-4 shadow-sm"
+            className="flex items-center justify-between border rounded-lg p-4"
           >
             <div className="flex items-center gap-3">
               <input
@@ -100,10 +85,10 @@ export default function CartPage() {
         <p className="text-xl font-semibold">Total: ${total}</p>
 
         <button
-          onClick={checkout}
+          onClick={goToCheckout}
           className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
         >
-          Checkout Selected
+          Checkout
         </button>
       </div>
 
