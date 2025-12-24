@@ -7,7 +7,6 @@ import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 import { useToast } from "@/context/toast/ToastContext";
-import Footer from "@/components/home/footer";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -36,7 +35,7 @@ export default function ProductDetailsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 max-w-3xl mx-auto px-6 py-10">
+      <main className="flex-1 max-w-3xl m-auto px-6 py-10">
         {loading ? (
           <div className="space-y-6">
             <Skeleton height="40px" width="60%" />
@@ -63,8 +62,6 @@ export default function ProductDetailsPage() {
           </Card>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }
