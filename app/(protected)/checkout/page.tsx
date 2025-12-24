@@ -7,6 +7,7 @@ import { OrdersApi } from "@/lib/orders/order";
 import { usePayment } from "@/hooks/payments/usePayment";
 import { checkoutSchema } from "@/lib/validation/checkout.schema";
 import { useToast } from "@/context/toast/ToastContext";
+import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 
 export default function CheckoutPage() {
   const { items, total } = useCart();
@@ -18,7 +19,6 @@ export default function CheckoutPage() {
   const [coupon, setCoupon] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // ✅ Selected cart items from URL
   const cartItemIds = useMemo(() => {
     const raw = searchParams.get("items");
     return raw ? raw.split(",").map(Number) : [];
@@ -40,14 +40,13 @@ export default function CheckoutPage() {
 
     try {
       setLoading(true);
-
       const order = await OrdersApi.checkout({
         address,
         cartItemIds,
         coupon: coupon || undefined,
       });
-
       await payForOrder(order.id);
+      toast.success("Checkout successful!");
     } catch (err: any) {
       toast.error(err.message || "Checkout failed");
     } finally {
@@ -55,8 +54,21 @@ export default function CheckoutPage() {
     }
   };
 
-  if (selectedItems.length === 0) {
+  if (selectedItems.length === 0)
     return <p className="p-6">No items selected</p>;
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto p-6 space-y-4">
+        {Array(selectedItems.length)
+          .fill(0)
+          .map((_, idx) => (
+            <Skeleton key={idx} height="40px" />
+          ))}
+        <Skeleton height="50px" />
+        <Skeleton height="40px" />
+      </div>
+    );
   }
 
   return (
@@ -93,7 +105,7 @@ export default function CheckoutPage() {
         disabled={loading}
         className="w-full bg-black text-white py-3 mt-4 rounded disabled:opacity-60"
       >
-        {loading ? "Processing..." : "Pay with Stripe"}
+        {loading ? <Skeleton height="100%" /> : "Pay with Stripe"}
       </button>
     </div>
   );

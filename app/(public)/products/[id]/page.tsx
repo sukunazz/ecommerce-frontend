@@ -5,6 +5,8 @@ import { useProduct } from "@/hooks/product/useProductById";
 import { useCart } from "@/context/cart/CartContext";
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
+import { Skeleton } from "@/components/ui/skeleton/Skeleton";
+import { useToast } from "@/context/toast/ToastContext";
 
 export default function ProductDetailsPage() {
   const { id } = useParams();
@@ -14,19 +16,37 @@ export default function ProductDetailsPage() {
   const { isAuthenticated } = useAuthContext();
   const { product, loading, error } = useProduct(productId);
   const { addToCart } = useCart();
-
-  if (loading) return <p className="p-6">Loading product...</p>;
-  if (error) return <p className="p-6 text-red-500">{error}</p>;
-  if (!product) return <p className="p-6">Product not found</p>;
+  const toast = useToast();
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
+      toast.info("Please login to add items to the cart");
       router.push("/auth/login");
       return;
     }
 
-    await addToCart(product.id, 1);
+    try {
+      await addToCart(product!.id, 1);
+      toast.success("Item added to cart");
+    } catch (err: any) {
+      toast.error(err.message || "Unable to add item to cart");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-6 py-10 space-y-6">
+        <Skeleton height="40px" width="60%" />
+        <Skeleton height="20px" width="100%" />
+        <Skeleton height="20px" width="90%" />
+        <Skeleton height="40px" width="30%" />
+        <Skeleton height="200px" width="100%" />
+      </div>
+    );
+  }
+
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
+  if (!product) return <p className="p-6">Product not found</p>;
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-10">
@@ -39,12 +59,7 @@ export default function ProductDetailsPage() {
 
         <button
           onClick={handleAddToCart}
-          className="
-            w-full bg-black text-white
-            py-3 rounded-lg
-            hover:bg-gray-800
-            transition
-          "
+          className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
         >
           Add to Cart
         </button>

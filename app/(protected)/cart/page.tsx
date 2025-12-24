@@ -4,16 +4,15 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/cart/CartContext";
 import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton/Skeleton";
+import { useToast } from "@/context/toast/ToastContext";
 
 export default function CartPage() {
   const { items, total, loading, error, updateQuantity, removeItem } =
     useCart();
-
   const [selected, setSelected] = useState<number[]>([]);
   const router = useRouter();
-
-  if (loading) return <p className="p-6">Loading cart...</p>;
-  if (error) return <p className="p-6 text-red-500">{error}</p>;
+  const toast = useToast();
 
   const toggle = (id: number) => {
     setSelected((prev) =>
@@ -23,12 +22,25 @@ export default function CartPage() {
 
   const goToCheckout = () => {
     if (selected.length === 0) {
-      alert("Select at least one item");
+      toast.error("Select at least one item");
       return;
     }
-
     router.push(`/checkout?items=${selected.join(",")}`);
   };
+
+  if (loading) {
+    return (
+      <div className="p-6 max-w-4xl mx-auto space-y-4">
+        {Array(3)
+          .fill(0)
+          .map((_, idx) => (
+            <Skeleton key={idx} height="80px" />
+          ))}
+      </div>
+    );
+  }
+
+  if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -65,7 +77,6 @@ export default function CartPage() {
                 }
                 className="w-16 border rounded px-2 py-1"
               />
-
               <button
                 onClick={() => removeItem(item.id)}
                 className="text-red-500 hover:underline"
@@ -79,7 +90,6 @@ export default function CartPage() {
 
       <div className="mt-8 flex justify-between items-center">
         <p className="text-xl font-semibold">Total: ${total}</p>
-
         <button
           onClick={goToCheckout}
           className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"

@@ -1,21 +1,21 @@
-// src/app/page.tsx
 "use client";
 
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import Header from "@/components/home/Header";
 import Body from "@/components/home/body";
-import Footer from "@/components/home/footer";
+import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 
 export default function Home() {
   const { isAuthenticated, loading } = useAuthContext();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-6 px-6">
+        <Skeleton variant="circle" width="80px" height="80px" />
+        <Skeleton height="30px" width="60%" />
+        <Skeleton height="20px" width="80%" />
+        <Skeleton height="20px" width="70%" />
+        <Skeleton height="300px" width="100%" />
       </div>
     );
   }
@@ -24,7 +24,6 @@ export default function Home() {
     <div>
       <Header isAuthenticated={isAuthenticated} />
       <Body isAuthenticated={isAuthenticated} />
-      <Footer />
     </div>
   );
 }

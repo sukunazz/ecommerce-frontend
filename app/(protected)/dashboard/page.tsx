@@ -4,12 +4,12 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthContext } from "@/context/authContext/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 
 export default function DashboardPage() {
   const { user, loading, logout, isAuthenticated } = useAuthContext();
   const router = useRouter();
 
-  // 🔐 Protect route
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.replace("/login");
@@ -19,7 +19,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-10 w-10 rounded-full border-b-2 border-blue-600"></div>
+        <Skeleton variant="circle" width="50px" height="50px" />
       </div>
     );
   }
@@ -32,7 +32,6 @@ export default function DashboardPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-
           <button
             onClick={logout}
             className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
@@ -74,11 +73,9 @@ export default function DashboardPage() {
         {/* NAVIGATION */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Navigation</h3>
-
           <div className="grid sm:grid-cols-2 gap-4">
             <NavLink href="/home" label="🏠 Home" />
             <NavLink href="/profile" label="👤 Profile" />
-
             {(user.role === "admin" || user.role === "superadmin") && (
               <NavLink href="/admin" label="🛠 Admin Panel" />
             )}
@@ -88,10 +85,6 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-/* -------------------- */
-/* SMALL COMPONENTS */
-/* -------------------- */
 
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
