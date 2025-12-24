@@ -25,4 +25,11 @@ export const CartApi = {
       method: "DELETE",
     });
   },
+
+  checkout(cartItemIds: number[], address: string, coupon?: string) {
+    return apiFetch("/orders/checkout", {
+      method: "POST",
+      body: JSON.stringify({ cartItemIds, address, coupon }),
+    });
+  },
 };

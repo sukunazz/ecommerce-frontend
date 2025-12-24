@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { useAuthContext } from "@/context/authContext/AuthContext";
-import { useCart } from "@/hooks/cart/useCart";
+import { useCart } from "@/context/cart/CartContext";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthContext();
