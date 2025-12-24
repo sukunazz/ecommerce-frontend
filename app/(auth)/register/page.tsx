@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
     if (!result.success) {
       // Take the first error from Zod
-      setError(result.error.errors[0]?.message || "Validation failed");
+      setError(result.error.issues[0]?.message || "Validation failed");
       return;
     }
 
