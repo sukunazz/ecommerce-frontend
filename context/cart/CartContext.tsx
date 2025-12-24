@@ -8,17 +8,13 @@ import {
   ReactNode,
 } from "react";
 import { apiFetch } from "@/lib/api";
+import { CartItem } from "@/lib/cart/types/cartItem.types";
 
 /* ================= TYPES ================= */
 
-export type CartItem = {
+type CartResponse = {
   id: number;
-  quantity: number;
-  product: {
-    id: number;
-    name: string;
-    price: number;
-  };
+  items: CartItem[];
 };
 
 type CartContextType = {
@@ -50,10 +46,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
 
-      const data = await apiFetch<CartItem[]>("/cart");
-      setItems(data);
+      const cart = await apiFetch<CartResponse>("/cart");
+
+      setItems(cart?.items ?? []);
     } catch (err: any) {
       setError(err.message || "Failed to load cart");
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -69,66 +67,57 @@ export function CartProvider({ children }: { children: ReactNode }) {
     0
   );
 
-  /* ---------- ADD TO CART ---------- */
+  /* ---------- ADD ---------- */
   const addToCart = async (productId: number, quantity = 1) => {
-    try {
-      await apiFetch("/cart", {
-        method: "POST",
-        body: JSON.stringify({ productId, quantity }),
-      });
+    await apiFetch("/cart/add", {
+      method: "POST",
+      body: JSON.stringify({ productId, quantity }),
+    });
 
-      // Reload cart to keep server as source of truth
-      await load();
-    } catch (err: any) {
-      setError(err.message || "Failed to add item to cart");
-    }
+    await load();
   };
 
-  /* ---------- UPDATE QUANTITY ---------- */
+  /* ---------- UPDATE ---------- */
   const updateQuantity = async (cartItemId: number, quantity: number) => {
     if (quantity < 1) return;
 
-    try {
-      await apiFetch(`/cart/${cartItemId}`, {
-        method: "PATCH",
-        body: JSON.stringify({ quantity }),
-      });
+    await apiFetch(`/cart/${cartItemId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ quantity }),
+    });
 
-      setItems((prev) =>
-        prev.map((item) =>
-          item.id === cartItemId ? { ...item, quantity } : item
-        )
-      );
-    } catch (err: any) {
-      setError(err.message || "Failed to update quantity");
-    }
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === cartItemId ? { ...item, quantity } : item
+      )
+    );
   };
 
-  /* ---------- REMOVE ITEM ---------- */
+  /* ---------- REMOVE ---------- */
   const removeItem = async (cartItemId: number) => {
-    try {
-      await apiFetch(`/cart/${cartItemId}`, {
-        method: "DELETE",
-      });
+    await apiFetch(`/cart/${cartItemId}`, {
+      method: "DELETE",
+    });
 
-      setItems((prev) => prev.filter((item) => item.id !== cartItemId));
-    } catch (err: any) {
-      setError(err.message || "Failed to remove item");
-    }
+    setItems((prev) => prev.filter((item) => item.id !== cartItemId));
   };
 
-  const value: CartContextType = {
-    items,
-    loading,
-    error,
-    total,
-    addToCart,
-    updateQuantity,
-    removeItem,
-    reload: load,
-  };
-
-  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+  return (
+    <CartContext.Provider
+      value={{
+        items,
+        loading,
+        error,
+        total,
+        addToCart,
+        updateQuantity,
+        removeItem,
+        reload: load,
+      }}
+    >
+      {children}
+    </CartContext.Provider>
+  );
 }
 
 /* ================= HOOK ================= */
