@@ -2,14 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
 import { useProducts } from "@/hooks/product/useProduct";
 import { useCart } from "@/context/cart/CartContext";
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 import { useToast } from "@/context/toast/ToastContext";
-import Footer from "@/components/home/footer";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -34,7 +32,8 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="flex-1 max-w-7xl mx-auto px-6 py-10">
+      {/* Main content grows */}
+      <main className="flex-grow max-w-7xl mx-auto px-6 py-10">
         <h1 className="text-3xl font-bold mb-8">Products</h1>
 
         {loading ? (
@@ -70,8 +69,6 @@ export default function ProductsPage() {
           </div>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }
