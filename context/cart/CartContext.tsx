@@ -1,33 +1,57 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
-import { CartApi } from "@/lib/cart/cart";
-import { CartItem } from "@/lib/cart/types/cartItem.types";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
+import { apiFetch } from "@/lib/api";
+
+/* ================= TYPES ================= */
+
+export type CartItem = {
+  id: number;
+  quantity: number;
+  product: {
+    id: number;
+    name: string;
+    price: number;
+  };
+};
 
 type CartContextType = {
   items: CartItem[];
-  selected: number[];
   loading: boolean;
-  addToCart: (productId: number, quantity?: number) => Promise<void>;
+  error: string | null;
+  total: number;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
   removeItem: (cartItemId: number) => Promise<void>;
-  toggleSelect: (cartItemId: number) => void;
-  clearSelection: () => void;
   reload: () => Promise<void>;
 };
 
-const CartContext = createContext<CartContextType | null>(null);
+/* ================= CONTEXT ================= */
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+const CartContext = createContext<CartContextType | undefined>(undefined);
+
+/* ================= PROVIDER ================= */
+
+export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
-  const [selected, setSelected] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  /* ---------- FETCH CART ---------- */
   const load = async () => {
-    setLoading(true);
     try {
-      const cart = await CartApi.getCart();
-      setItems(cart?.items ?? []);
+      setLoading(true);
+      setError(null);
+
+      const data = await apiFetch<CartItem[]>("/cart");
+      setItems(data);
+    } catch (err: any) {
+      setError(err.message || "Failed to load cart");
     } finally {
       setLoading(false);
     }
@@ -37,61 +61,65 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     load();
   }, []);
 
-  // ✅ ADD TO CART
-  const addToCart = async (productId: number, quantity = 1) => {
-    const cart = await CartApi.addCartItem(productId, quantity);
-    setItems(cart.items);
-  };
+  /* ---------- TOTAL ---------- */
+  const total = items.reduce(
+    (sum, item) => sum + item.product.price * item.quantity,
+    0
+  );
 
-  // ✅ UPDATE QTY
+  /* ---------- UPDATE QUANTITY ---------- */
   const updateQuantity = async (cartItemId: number, quantity: number) => {
     if (quantity < 1) return;
-    const cart = await CartApi.updateCartItem(cartItemId, quantity);
-    setItems(cart.items);
+
+    try {
+      await apiFetch(`/cart/${cartItemId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ quantity }),
+      });
+
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === cartItemId ? { ...item, quantity } : item
+        )
+      );
+    } catch (err: any) {
+      setError(err.message || "Failed to update quantity");
+    }
   };
 
-  // ✅ REMOVE ITEM
+  /* ---------- REMOVE ITEM ---------- */
   const removeItem = async (cartItemId: number) => {
-    const cart = await CartApi.deleteCartItem(cartItemId);
-    setItems(cart.items);
-    setSelected((prev) => prev.filter((id) => id !== cartItemId));
+    try {
+      await apiFetch(`/cart/${cartItemId}`, {
+        method: "DELETE",
+      });
+
+      setItems((prev) => prev.filter((item) => item.id !== cartItemId));
+    } catch (err: any) {
+      setError(err.message || "Failed to remove item");
+    }
   };
 
-  // ✅ SELECT / UNSELECT
-  const toggleSelect = (cartItemId: number) => {
-    setSelected((prev) =>
-      prev.includes(cartItemId)
-        ? prev.filter((id) => id !== cartItemId)
-        : [...prev, cartItemId]
-    );
+  /* ---------- CONTEXT VALUE ---------- */
+  const value: CartContextType = {
+    items,
+    loading,
+    error,
+    total,
+    updateQuantity,
+    removeItem,
+    reload: load,
   };
 
-  const clearSelection = () => setSelected([]);
-
-  return (
-    <CartContext.Provider
-      value={{
-        items,
-        selected,
-        loading,
-        addToCart,
-        updateQuantity,
-        removeItem,
-        toggleSelect,
-        clearSelection,
-        reload: load,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
-// ✅ SAFE HOOK
+/* ================= HOOK ================= */
+
 export function useCart() {
-  const ctx = useContext(CartContext);
-  if (!ctx) {
-    throw new Error("useCart must be used inside CartProvider");
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error("useCart must be used within CartProvider");
   }
-  return ctx;
+  return context;
 }
