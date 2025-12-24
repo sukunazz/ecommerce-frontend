@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/context/authContext/AuthContext";
 import { CartProvider } from "@/context/cart/CartContext";
+import { ToastProvider } from "@/context/toast/ToastContext";
 
 const geistSans = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -22,7 +23,9 @@ export default function RootLayout({
       <body className={`${geistSans.className} ${geistMono.className}`}>
         <AuthProvider>
           {" "}
-          <CartProvider>{children}</CartProvider>
+          <ToastProvider>
+            <CartProvider>{children}</CartProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

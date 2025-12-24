@@ -7,23 +7,30 @@ import { useProducts } from "@/hooks/product/useProduct";
 import { useCart } from "@/context/cart/CartContext";
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
+import { useToast } from "@/context/toast/ToastContext";
 
 export default function ProductsPage() {
   const router = useRouter();
   const { products, loading, error } = useProducts();
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuthContext();
+  const toast = useToast();
 
   if (loading) return <p className="p-6">Loading products...</p>;
   if (error) return <p className="p-6 text-red-500">{error}</p>;
 
   const handleAddToCart = async (productId: number) => {
     if (!isAuthenticated) {
+      toast.info("please login to add items to the card");
       router.push("/auth/login");
       return;
     }
-
-    await addToCart(productId, 1);
+    try {
+      await addToCart(productId, 1);
+      toast.success("Item added to cart");
+    } catch (err: any) {
+      toast.error(err.message || "Unable to add item to cart");
+    }
   };
 
   return (
