@@ -17,7 +17,7 @@ async function refreshAccessToken() {
     })
       .then((res) => {
         if (!res.ok) {
-          throw new Error("Refresh token invalid");
+          throw new Error("Session expired");
         }
       })
       .finally(() => {
@@ -29,7 +29,8 @@ async function refreshAccessToken() {
   return refreshPromise;
 }
 
-/* ✅ ONLY CHANGE IS HERE */
+/* ================= API FETCH ================= */
+
 export async function apiFetch<T = any>(
   path: string,
   options: RequestInit = {}
@@ -47,14 +48,17 @@ export async function apiFetch<T = any>(
 
   let res = await doFetch();
 
-  // 🔐 Access token expired → refresh once
+  /* 🔐 Handle expired access token */
   if (res.status === 401) {
     if (!isRefreshing) {
       isRefreshing = true;
       try {
         await refreshAccessToken();
       } catch {
-        throw new Error("Unauthorized");
+        throw {
+          message: "Session expired. Please login again.",
+          status: 401,
+        };
       }
     } else {
       await refreshPromise;
@@ -63,12 +67,24 @@ export async function apiFetch<T = any>(
     res = await doFetch();
   }
 
+  /* ❌ Handle errors cleanly */
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "Request failed");
+    let errorData: any = null;
+
+    try {
+      errorData = await res.json(); // NestJS errors
+    } catch {
+      // ignore
+    }
+
+    throw {
+      message: errorData?.message || errorData?.error || "Something went wrong",
+      status: res.status,
+      code: errorData?.code,
+    };
   }
 
-  // handle empty responses safely
+  /* ✅ Handle empty body */
   try {
     return (await res.json()) as T;
   } catch {
