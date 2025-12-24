@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useCart } from "@/hooks/cart/useCart";
+import { useCart } from "@/context/cart/CartContext";
 import { apiFetch } from "@/lib/api";
 import { useRouter } from "next/navigation";
 
