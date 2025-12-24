@@ -4,13 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { useCart } from "@/context/cart/CartContext";
 import { apiFetch } from "@/lib/api";
-import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { items, total, loading, error, updateQuantity, removeItem } =
     useCart();
+
   const [selected, setSelected] = useState<number[]>([]);
-  const router = useRouter();
 
   if (loading) return <p className="p-6">Loading cart...</p>;
   if (error) return <p className="p-6 text-red-500">{error}</p>;
@@ -27,15 +26,27 @@ export default function CartPage() {
       return;
     }
 
-    const order = await apiFetch("/orders/checkout", {
-      method: "POST",
-      body: JSON.stringify({
-        address: "Default address",
-        cartItemIds: selected,
-      }),
-    });
+    try {
+      // 1️⃣ Create order from selected cart items
+      const order = await apiFetch("/orders/checkout", {
+        method: "POST",
+        body: JSON.stringify({
+          address: "Default address",
+          cartItemIds: selected,
+        }),
+      });
 
-    router.push(`/pay/${order.id}`);
+      // 2️⃣ Create Stripe checkout session
+      const payment = await apiFetch(`/payments/pay/${order.id}`, {
+        method: "POST",
+      });
+
+      // 3️⃣ Redirect to Stripe Checkout
+      window.location.href = payment.checkoutUrl;
+    } catch (err) {
+      console.error(err);
+      alert("Checkout failed");
+    }
   };
 
   return (
@@ -73,6 +84,7 @@ export default function CartPage() {
                 }
                 className="w-16 border rounded px-2 py-1"
               />
+
               <button
                 onClick={() => removeItem(item.id)}
                 className="text-red-500 hover:underline"
