@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useCart } from "@/hooks/cart/useCart";
+import { useCart } from "@/context/cart/CartContext";
 import { OrdersApi } from "@/lib/orders/order";
 import { usePayment } from "@/hooks/payments/usePayment";
 
