@@ -33,7 +33,7 @@ export default function ProductsPage() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Main content */}
-      <main className="grow max-w-7xl m-auto px-6 py-10">
+      <main className="grow max-w-7xl px-6 py-10">
         <h1 className="text-3xl font-bold mb-8">Products</h1>
 
         {loading ? (
