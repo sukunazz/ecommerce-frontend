@@ -8,11 +8,12 @@ type CartContextType = {
   items: CartItem[];
   selected: number[];
   loading: boolean;
-  toggleSelect: (id: number) => void;
+  addToCart: (productId: number, quantity?: number) => Promise<void>;
+  updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
+  removeItem: (cartItemId: number) => Promise<void>;
+  toggleSelect: (cartItemId: number) => void;
+  clearSelection: () => void;
   reload: () => Promise<void>;
-  updateQuantity: (id: number, qty: number) => Promise<void>;
-  removeItem: (id: number) => Promise<void>;
-  checkout: (address: string, coupon?: string) => Promise<any>;
 };
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -24,36 +25,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const load = async () => {
     setLoading(true);
-    const cart = await CartApi.getCart();
-    setItems(cart?.items ?? []);
-    setLoading(false);
+    try {
+      const cart = await CartApi.getCart();
+      setItems(cart?.items ?? []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     load();
   }, []);
 
-  const toggleSelect = (id: number) => {
+  // ✅ ADD TO CART
+  const addToCart = async (productId: number, quantity = 1) => {
+    const cart = await CartApi.addCartItem(productId, quantity);
+    setItems(cart.items);
+  };
+
+  // ✅ UPDATE QTY
+  const updateQuantity = async (cartItemId: number, quantity: number) => {
+    if (quantity < 1) return;
+    const cart = await CartApi.updateCartItem(cartItemId, quantity);
+    setItems(cart.items);
+  };
+
+  // ✅ REMOVE ITEM
+  const removeItem = async (cartItemId: number) => {
+    const cart = await CartApi.deleteCartItem(cartItemId);
+    setItems(cart.items);
+    setSelected((prev) => prev.filter((id) => id !== cartItemId));
+  };
+
+  // ✅ SELECT / UNSELECT
+  const toggleSelect = (cartItemId: number) => {
     setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+      prev.includes(cartItemId)
+        ? prev.filter((id) => id !== cartItemId)
+        : [...prev, cartItemId]
     );
   };
 
-  const updateQuantity = async (id: number, qty: number) => {
-    if (qty < 1) return;
-    const cart = await CartApi.updateCartItem(id, qty);
-    setItems(cart.items);
-  };
-
-  const removeItem = async (id: number) => {
-    const cart = await CartApi.deleteCartItem(id);
-    setItems(cart.items);
-    setSelected((prev) => prev.filter((x) => x !== id));
-  };
-
-  const checkout = async (address: string, coupon?: string) => {
-    return CartApi.checkout(selected, address, coupon);
-  };
+  const clearSelection = () => setSelected([]);
 
   return (
     <CartContext.Provider
@@ -61,11 +74,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         items,
         selected,
         loading,
-        toggleSelect,
-        reload: load,
+        addToCart,
         updateQuantity,
         removeItem,
-        checkout,
+        toggleSelect,
+        clearSelection,
+        reload: load,
       }}
     >
       {children}
@@ -73,8 +87,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export const useCart = () => {
+// ✅ SAFE HOOK
+export function useCart() {
   const ctx = useContext(CartContext);
-  if (!ctx) throw new Error("useCart must be used inside CartProvider");
+  if (!ctx) {
+    throw new Error("useCart must be used inside CartProvider");
+  }
   return ctx;
-};
+}

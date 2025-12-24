@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { useProducts } from "@/hooks/product/useProduct";
-import { useCart } from "@/hooks/cart/useCart";
+import { useCart } from "@/context/cart/CartContext";
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
 
