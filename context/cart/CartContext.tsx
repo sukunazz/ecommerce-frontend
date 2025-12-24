@@ -26,6 +26,8 @@ type CartContextType = {
   loading: boolean;
   error: string | null;
   total: number;
+
+  addToCart: (productId: number, quantity?: number) => Promise<void>;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
   removeItem: (cartItemId: number) => Promise<void>;
   reload: () => Promise<void>;
@@ -42,7 +44,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /* ---------- FETCH CART ---------- */
+  /* ---------- LOAD CART ---------- */
   const load = async () => {
     try {
       setLoading(true);
@@ -66,6 +68,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
+
+  /* ---------- ADD TO CART ---------- */
+  const addToCart = async (productId: number, quantity = 1) => {
+    try {
+      await apiFetch("/cart", {
+        method: "POST",
+        body: JSON.stringify({ productId, quantity }),
+      });
+
+      // Reload cart to keep server as source of truth
+      await load();
+    } catch (err: any) {
+      setError(err.message || "Failed to add item to cart");
+    }
+  };
 
   /* ---------- UPDATE QUANTITY ---------- */
   const updateQuantity = async (cartItemId: number, quantity: number) => {
@@ -100,12 +117,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ---------- CONTEXT VALUE ---------- */
   const value: CartContextType = {
     items,
     loading,
     error,
     total,
+    addToCart,
     updateQuantity,
     removeItem,
     reload: load,
