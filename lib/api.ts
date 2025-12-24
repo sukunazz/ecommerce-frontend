@@ -29,7 +29,11 @@ async function refreshAccessToken() {
   return refreshPromise;
 }
 
-export async function apiFetch(path: string, options: RequestInit = {}) {
+/* ✅ ONLY CHANGE IS HERE */
+export async function apiFetch<T = any>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
   const doFetch = () =>
     fetch(`${API_BASE_URL}${path}`, {
       credentials: "include",
@@ -43,7 +47,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
 
   let res = await doFetch();
 
-  // ✅ If access token expired, try refresh ONCE
+  // 🔐 Access token expired → refresh once
   if (res.status === 401) {
     if (!isRefreshing) {
       isRefreshing = true;
@@ -53,11 +57,9 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         throw new Error("Unauthorized");
       }
     } else {
-      // wait for ongoing refresh
       await refreshPromise;
     }
 
-    // 🔁 retry original request
     res = await doFetch();
   }
 
@@ -66,10 +68,10 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
     throw new Error(text || "Request failed");
   }
 
-  // handle empty responses
+  // handle empty responses safely
   try {
-    return await res.json();
+    return (await res.json()) as T;
   } catch {
-    return null;
+    return null as T;
   }
 }
