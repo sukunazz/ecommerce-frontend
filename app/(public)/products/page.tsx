@@ -9,6 +9,7 @@ import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 import { useToast } from "@/context/toast/ToastContext";
+import Footer from "@/components/home/footer";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -31,44 +32,46 @@ export default function ProductsPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex-col min-h-screen max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, idx) => (
-          <div key={idx} className="space-y-2">
-            <Skeleton height="150px" width="100%" />
-            <Skeleton height="20px" width="80%" />
-            <Skeleton height="20px" width="60%" />
-            <Skeleton height="35px" width="100%" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (error) return <p className="p-6 text-red-500">{error}</p>;
-
   return (
-    <div className="max-w-7xl mx-auto px-6 py-10">
-      <h1 className="text-3xl font-bold mb-8">Products</h1>
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-1 max-w-7xl mx-auto px-6 py-10">
+        <h1 className="text-3xl font-bold mb-8">Products</h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {products.map((product) => (
-          <Card key={product.id} className="flex flex-col">
-            <Link href={`/products/${product.id}`} className="mb-4">
-              <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
-              <p className="text-sm text-gray-400">${product.price}</p>
-            </Link>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, idx) => (
+              <div key={idx} className="space-y-2">
+                <Skeleton height="150px" width="100%" />
+                <Skeleton height="20px" width="80%" />
+                <Skeleton height="20px" width="60%" />
+                <Skeleton height="35px" width="100%" />
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <Card key={product.id} className="flex flex-col">
+                <Link href={`/products/${product.id}`} className="mb-4">
+                  <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
+                  <p className="text-sm text-gray-400">${product.price}</p>
+                </Link>
 
-            <button
-              onClick={() => handleAddToCart(product.id)}
-              className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition"
-            >
-              Add to cart
-            </button>
-          </Card>
-        ))}
-      </div>
+                <button
+                  onClick={() => handleAddToCart(product.id)}
+                  className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition"
+                >
+                  Add to cart
+                </button>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
+
+      <Footer />
     </div>
   );
 }
