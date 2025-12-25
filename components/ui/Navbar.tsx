@@ -98,11 +98,10 @@ export function Navbar() {
                     </div>
 
                     <Link
-                      href="/dashboard"
+                      href="/profile"
                       className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-white/10"
                       onClick={() => setOpen(false)}
                     >
-                      <User className="w-4 h-4" />
                       Profile
                     </Link>
 
