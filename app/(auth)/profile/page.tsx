@@ -1,47 +1,62 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useAuthContext } from "@/context/authContext/AuthContext";
+import { Mail, ShieldCheck, UserCircle } from "lucide-react";
 
 export default function ProfilePage() {
-  const pathname = usePathname();
+  const { user } = useAuthContext();
 
   return (
-    <div className="min-h-screen flex bg-gray-100 pt-24">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r px-6 py-8">
-        <h2 className="text-lg font-semibold mb-6">Profile</h2>
+    <div
+      className="
+        bg-white/5 backdrop-blur-xl
+        border border-white/10
+        rounded-2xl p-8
+        space-y-8
+      "
+    >
+      {/* Header */}
+      <div className="flex items-center gap-6">
+        <div
+          className="
+            w-20 h-20 rounded-full
+            bg-gradient-to-br from-indigo-500 to-purple-600
+            flex items-center justify-center
+            text-white
+          "
+        >
+          <UserCircle size={42} />
+        </div>
 
-        <nav className="space-y-2">
-          <Link
-            href="/profile/info"
-            className={`block px-3 py-2 rounded ${
-              pathname.includes("info")
-                ? "bg-black text-white"
-                : "hover:bg-gray-100"
-            }`}
-          >
-            Info
-          </Link>
+        <div>
+          <h1 className="text-2xl font-semibold">My Profile</h1>
+          <p className="text-sm opacity-70">Manage your personal information</p>
+        </div>
+      </div>
 
-          <Link
-            href="/profile/settings"
-            className={`block px-3 py-2 rounded ${
-              pathname.includes("settings")
-                ? "bg-black text-white"
-                : "hover:bg-gray-100"
-            }`}
-          >
-            Settings
-          </Link>
-        </nav>
-      </aside>
+      {/* Info Cards */}
+      <div className="grid sm:grid-cols-2 gap-6">
+        <div className="bg-black/40 border border-white/10 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-2 text-sm opacity-70">
+            <Mail size={16} />
+            Email
+          </div>
+          <p className="font-medium">{user?.email}</p>
+        </div>
 
-      {/* Content */}
-      <main className="flex-1 p-10">
-        <h1 className="text-2xl font-bold">Profile</h1>
-        <p className="text-gray-500 mt-1">Manage your account information</p>
-      </main>
+        <div className="bg-black/40 border border-white/10 rounded-xl p-5">
+          <div className="flex items-center gap-3 mb-2 text-sm opacity-70">
+            <ShieldCheck size={16} />
+            Role
+          </div>
+          <p className="font-medium capitalize">{user?.role}</p>
+        </div>
+      </div>
+
+      {/* Footer note */}
+      <p className="text-xs opacity-50">
+        Some information may be managed by administrators.
+      </p>
     </div>
   );
 }
