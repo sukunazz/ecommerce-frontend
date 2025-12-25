@@ -5,12 +5,6 @@ import { useToast } from "@/context/toast/ToastContext";
 import { useEffect } from "react";
 
 export default function SuccessPage() {
-  const toast = useToast();
-
-  useEffect(() => {
-    toast.success("Payment successful!");
-  }, [toast]);
-
   return (
     <div className="p-10 text-center space-y-4">
       <Skeleton variant="circle" width="50px" height="50px" />
