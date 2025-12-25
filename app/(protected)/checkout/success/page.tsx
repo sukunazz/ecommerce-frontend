@@ -1,8 +1,6 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
-import { useToast } from "@/context/toast/ToastContext";
-import { useEffect } from "react";
 
 export default function SuccessPage() {
   return (
