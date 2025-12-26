@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ProductApi } from "@/lib/products/product";
+import { ProductApi, ProductFilters } from "@/lib/products/product";
 import { Product } from "@/lib/products/types/types";
 
-export function useProducts() {
+export function useProducts(filters?: ProductFilters) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
+    setLoading(true);
 
-    ProductApi.getProducts()
+    ProductApi.getProducts(filters)
       .then((data) => {
         if (mounted) setProducts(data);
       })
@@ -26,11 +27,7 @@ export function useProducts() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [JSON.stringify(filters)]); // 👈 IMPORTANT
 
-  return {
-    products,
-    loading,
-    error,
-  };
+  return { products, loading, error };
 }

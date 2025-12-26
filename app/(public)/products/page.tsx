@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useProducts } from "@/hooks/product/useProduct";
 import { useCart } from "@/context/cart/CartContext";
 import { useAuthContext } from "@/context/authContext/AuthContext";
@@ -11,10 +12,19 @@ import { useToast } from "@/context/toast/ToastContext";
 
 export default function ProductsPage() {
   const router = useRouter();
-  const { products, loading, error } = useProducts();
+  const toast = useToast();
+
+  // 🔎 FILTER STATE
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState<"price_asc" | "price_desc" | undefined>();
+
+  const { products, loading, error } = useProducts({
+    search,
+    sort,
+  });
+
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuthContext();
-  const toast = useToast();
 
   const handleAddToCart = async (productId: number) => {
     if (!isAuthenticated) {
@@ -22,6 +32,7 @@ export default function ProductsPage() {
       router.push("/auth/login");
       return;
     }
+
     try {
       await addToCart(productId, 1);
       toast.success("Item added to cart");
@@ -32,9 +43,30 @@ export default function ProductsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Main content */}
-      <main className="grow max-w-7xl px-6 py-10">
+      <main className="grow max-w-7xl px-6 py-10 mx-auto">
         <h1 className="text-3xl font-bold mb-8">Products</h1>
+
+        {/* 🔍 FILTER BAR */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border rounded-lg px-4 py-2 w-full sm:w-1/2"
+          />
+
+          <select
+            onChange={(e) =>
+              setSort(e.target.value as "price_asc" | "price_desc")
+            }
+            className="border rounded-lg px-4 py-2 w-full sm:w-1/4"
+          >
+            <option value="">Sort by</option>
+            <option value="price_asc">Price: Low → High</option>
+            <option value="price_desc">Price: High → Low</option>
+          </select>
+        </div>
 
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -55,7 +87,7 @@ export default function ProductsPage() {
               <Card key={product.id} className="flex flex-col">
                 <Link href={`/products/${product.id}`} className="mb-4">
                   <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
-                  <p className="text-sm text-gray-400">${product.price}</p>
+                  <p className="text-sm text-gray-500">${product.price}</p>
                 </Link>
 
                 <button
