@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useProducts } from "@/hooks/product/useProduct";
 import { useCart } from "@/context/cart/CartContext";
 import { useAuthContext } from "@/context/authContext/AuthContext";
@@ -12,11 +11,15 @@ import { useToast } from "@/context/toast/ToastContext";
 
 export default function ProductsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const toast = useToast();
 
-  // 🔎 FILTER STATE
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<"price_asc" | "price_desc" | undefined>();
+  // 🔎 READ FROM URL
+  const search = searchParams.get("search") || "";
+  const sort = searchParams.get("sort") as
+    | "price_asc"
+    | "price_desc"
+    | undefined;
 
   const { products, loading, error } = useProducts({
     search,
@@ -41,26 +44,25 @@ export default function ProductsPage() {
     }
   };
 
+  const updateSort = (value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("sort", value);
+    else params.delete("sort");
+
+    router.push(`/products?${params.toString()}`);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="grow max-w-7xl px-6 py-10 mx-auto">
         <h1 className="text-3xl font-bold mb-8">Products</h1>
 
-        {/* 🔍 FILTER BAR */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="border rounded-lg px-4 py-2 w-full sm:w-1/2"
-          />
-
+        {/* SORT */}
+        <div className="flex justify-end mb-6">
           <select
-            onChange={(e) =>
-              setSort(e.target.value as "price_asc" | "price_desc")
-            }
-            className="border rounded-lg px-4 py-2 w-full sm:w-1/4"
+            value={sort || ""}
+            onChange={(e) => updateSort(e.target.value)}
+            className="border rounded-lg px-4 py-2"
           >
             <option value="">Sort by</option>
             <option value="price_asc">Price: Low → High</option>
@@ -86,13 +88,13 @@ export default function ProductsPage() {
             {products.map((product) => (
               <Card key={product.id} className="flex flex-col">
                 <Link href={`/products/${product.id}`} className="mb-4">
-                  <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
+                  <h2 className="text-lg font-semibold">{product.name}</h2>
                   <p className="text-sm text-gray-500">${product.price}</p>
                 </Link>
 
                 <button
                   onClick={() => handleAddToCart(product.id)}
-                  className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800 transition"
+                  className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
                 >
                   Add to cart
                 </button>

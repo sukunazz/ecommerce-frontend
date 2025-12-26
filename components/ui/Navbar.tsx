@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingCart, User } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { useCart } from "@/context/cart/CartContext";
 import { useEffect, useRef, useState } from "react";
@@ -13,6 +13,8 @@ export function Navbar() {
   const router = useRouter();
 
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -37,18 +39,46 @@ export function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🟢 Avatar letter (first letter of email)
+  // 🔍 SEARCH HANDLER
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+
+    if (!search.trim()) return;
+
+    router.push(`/products?search=${encodeURIComponent(search)}`);
+    setSearch("");
+  }
+
   const avatarLetter = user?.email?.charAt(0).toUpperCase() ?? "U";
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md border-b border-white/10">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 text-white">
-        {/* Logo */}
+        {/* LOGO */}
         <Link href="/" className="text-xl font-semibold tracking-wide">
           Oracle
         </Link>
 
-        {/* Right side */}
+        {/* 🔍 SEARCH (DESKTOP) */}
+        <form
+          onSubmit={handleSearch}
+          className="hidden md:flex items-center w-1/3"
+        >
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search products..."
+            className="
+              w-full px-4 py-2 rounded-lg
+              bg-white/10 border border-white/10
+              text-sm text-white
+              placeholder:text-gray-400
+              focus:outline-none focus:ring-2 focus:ring-white/20
+            "
+          />
+        </form>
+
+        {/* RIGHT SIDE */}
         <div className="flex items-center space-x-6">
           <Link href="/home" className="hover:text-gray-300">
             Home
@@ -60,7 +90,7 @@ export function Navbar() {
 
           {isAuthenticated ? (
             <>
-              {/* 🛒 Cart */}
+              {/* 🛒 CART */}
               <Link href="/cart" className="relative">
                 <ShoppingCart className="w-6 h-6 hover:text-gray-300 transition" />
                 {cartCount > 0 && (
@@ -70,7 +100,7 @@ export function Navbar() {
                 )}
               </Link>
 
-              {/* 👤 Profile Dropdown */}
+              {/* 👤 PROFILE */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setOpen((p) => !p)}
@@ -99,7 +129,7 @@ export function Navbar() {
 
                     <Link
                       href="/profile"
-                      className="flex items-center gap-2 px-4 py-3 text-sm hover:bg-white/10"
+                      className="block px-4 py-3 text-sm hover:bg-white/10"
                       onClick={() => setOpen(false)}
                     >
                       Profile
