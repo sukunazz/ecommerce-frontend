@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { useAuthContext } from "@/context/authContext/AuthContext";
 import { useCart } from "@/context/cart/CartContext";
@@ -11,10 +11,10 @@ export function Navbar() {
   const { user, isAuthenticated, logout } = useAuthContext();
   const { items } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
 
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const cartCount = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -24,7 +24,7 @@ export function Navbar() {
     router.replace("/home");
   }
 
-  // 🔴 Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (
@@ -34,65 +34,52 @@ export function Navbar() {
         setOpen(false);
       }
     }
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🔍 SEARCH HANDLER
-  function handleSearch(e: React.FormEvent) {
+  // 🔍 Submit search
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!search.trim()) return;
 
     router.push(`/products?search=${encodeURIComponent(search)}`);
-    setSearch("");
-  }
+  };
 
   const avatarLetter = user?.email?.charAt(0).toUpperCase() ?? "U";
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-black/70 backdrop-blur-md border-b border-white/10">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 text-white">
-        {/* LOGO */}
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-4 text-white gap-6">
+        {/* Logo */}
         <Link href="/" className="text-xl font-semibold tracking-wide">
           Oracle
         </Link>
 
-        {/* 🔍 SEARCH (DESKTOP) */}
-        <form
-          onSubmit={handleSearch}
-          className="hidden md:flex items-center w-1/3"
-        >
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products..."
-            className="
-              w-full px-4 py-2 rounded-lg
-              bg-white/10 border border-white/10
-              text-sm text-white
-              placeholder:text-gray-400
-              focus:outline-none focus:ring-2 focus:ring-white/20
-            "
-          />
-        </form>
+        {/* 🔍 Search (hidden on auth pages) */}
+        {!pathname.startsWith("/auth") && (
+          <form
+            onSubmit={handleSearch}
+            className="flex-1 max-w-md hidden md:block"
+          >
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search products..."
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 focus:outline-none"
+            />
+          </form>
+        )}
 
-        {/* RIGHT SIDE */}
+        {/* Right */}
         <div className="flex items-center space-x-6">
-          <Link href="/home" className="hover:text-gray-300">
-            Home
-          </Link>
-
-          <Link href="/products" className="hover:text-gray-300">
-            Products
-          </Link>
+          <Link href="/products">Products</Link>
 
           {isAuthenticated ? (
             <>
-              {/* 🛒 CART */}
+              {/* Cart */}
               <Link href="/cart" className="relative">
-                <ShoppingCart className="w-6 h-6 hover:text-gray-300 transition" />
+                <ShoppingCart className="w-6 h-6" />
                 {cartCount > 0 && (
                   <span className="absolute -top-2 -right-2 min-w-[18px] h-[18px] text-[11px] bg-red-500 rounded-full flex items-center justify-center">
                     {cartCount}
@@ -100,36 +87,24 @@ export function Navbar() {
                 )}
               </Link>
 
-              {/* 👤 PROFILE */}
+              {/* Profile */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setOpen((p) => !p)}
-                  className="
-                    w-9 h-9 rounded-full
-                    bg-white/10 hover:bg-white/20
-                    flex items-center justify-center
-                    font-semibold
-                  "
+                  className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center"
                 >
                   {avatarLetter}
                 </button>
 
                 {open && (
-                  <div
-                    className="
-                      absolute right-0 mt-3 w-44
-                      bg-zinc-900 border border-white/10
-                      rounded-xl shadow-xl
-                      overflow-hidden
-                    "
-                  >
+                  <div className="absolute right-0 mt-3 w-44 bg-zinc-900 rounded-xl border border-white/10">
                     <div className="px-4 py-3 text-sm text-gray-400 border-b border-white/10">
                       {user?.email}
                     </div>
 
                     <Link
                       href="/profile"
-                      className="block px-4 py-3 text-sm hover:bg-white/10"
+                      className="block px-4 py-3 hover:bg-white/10"
                       onClick={() => setOpen(false)}
                     >
                       Profile
@@ -137,7 +112,7 @@ export function Navbar() {
 
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/10"
+                      className="w-full text-left px-4 py-3 text-red-400 hover:bg-white/10"
                     >
                       Logout
                     </button>
@@ -147,12 +122,10 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <Link href="/login" className="hover:text-gray-300">
-                Login
-              </Link>
+              <Link href="/login">Login</Link>
               <Link
                 href="/register"
-                className="px-4 py-1.5 rounded-md bg-white/10 hover:bg-white/20"
+                className="px-4 py-1.5 rounded-md bg-white/10"
               >
                 Register
               </Link>
