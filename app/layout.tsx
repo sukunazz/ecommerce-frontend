@@ -24,9 +24,7 @@ export default function RootLayout({
         <AuthProvider>
           {" "}
           <ToastProvider>
-            <CartProvider>
-              <main className="flex-1 pt-20">{children}</main>
-            </CartProvider>
+            <CartProvider>{children}</CartProvider>
           </ToastProvider>
         </AuthProvider>
       </body>
