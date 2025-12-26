@@ -8,9 +8,9 @@ import { useAuthContext } from "@/context/authContext/AuthContext";
 import { Card } from "@/components/ui/Card/ProductCard";
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 import { useToast } from "@/context/toast/ToastContext";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-export default function ProductsClient() {
+export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
@@ -23,65 +23,114 @@ export default function ProductsClient() {
 
   const [localSearch, setLocalSearch] = useState(search);
 
-  useEffect(() => {
-    setLocalSearch(search);
-  }, [search]);
+  const { products, loading, error } = useProducts({
+    search,
+    sort,
+  });
 
-  const { products, loading, error } = useProducts({ search, sort });
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuthContext();
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  function applySearch() {
     const params = new URLSearchParams(searchParams.toString());
 
-    if (localSearch) params.set("search", localSearch);
-    else params.delete("search");
+    if (localSearch.trim()) {
+      params.set("search", localSearch.trim());
+    } else {
+      params.delete("search");
+    }
 
     router.push(`/products?${params.toString()}`);
-  };
+  }
+
+  function updateSort(value: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) params.set("sort", value);
+    else params.delete("sort");
+
+    router.push(`/products?${params.toString()}`);
+  }
+
+  async function handleAddToCart(productId: number) {
+    if (!isAuthenticated) {
+      toast.info("Please login to add items to the cart");
+      router.push("/auth/login");
+      return;
+    }
+
+    try {
+      await addToCart(productId, 1);
+      toast.success("Item added to cart");
+    } catch (err: any) {
+      toast.error(err.message || "Unable to add item to cart");
+    }
+  }
 
   return (
-    <main className="max-w-7xl px-6 py-10 mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Products</h1>
+    <div className="flex flex-col min-h-screen">
+      <main className="grow max-w-7xl px-6 py-10 mx-auto">
+        <h1 className="text-3xl font-bold mb-6">Products</h1>
 
-      {/* 🔍 Products Search */}
-      <form onSubmit={handleSearchSubmit} className="mb-6">
-        <input
-          value={localSearch}
-          onChange={(e) => setLocalSearch(e.target.value)}
-          placeholder="Search products..."
-          className="w-full md:w-1/2 px-4 py-2 border rounded-lg"
-        />
-      </form>
+        {/* SEARCH + SORT */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <input
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            placeholder="Search products..."
+            className="border rounded-lg px-4 py-2 w-full sm:w-1/2"
+          />
 
-      {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} height="200px" />
-          ))}
+          <button
+            onClick={applySearch}
+            className="px-4 py-2 rounded-lg bg-black text-white"
+          >
+            Search
+          </button>
+
+          <select
+            value={sort || ""}
+            onChange={(e) => updateSort(e.target.value)}
+            className="border rounded-lg px-4 py-2 sm:ml-auto"
+          >
+            <option value="">Sort by</option>
+            <option value="price_asc">Price: Low → High</option>
+            <option value="price_desc">Price: High → Low</option>
+          </select>
         </div>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <Card key={product.id} className="flex flex-col">
-              <Link href={`/products/${product.id}`}>
-                <h2 className="font-semibold">{product.name}</h2>
-                <p>${product.price}</p>
-              </Link>
 
-              <button
-                onClick={() => addToCart(product.id, 1)}
-                className="mt-auto bg-black text-white py-2 rounded-lg"
-              >
-                Add to cart
-              </button>
-            </Card>
-          ))}
-        </div>
-      )}
-    </main>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, idx) => (
+              <div key={idx} className="space-y-2">
+                <Skeleton height="150px" width="100%" />
+                <Skeleton height="20px" width="80%" />
+                <Skeleton height="20px" width="60%" />
+                <Skeleton height="35px" width="100%" />
+              </div>
+            ))}
+          </div>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <Card key={product.id} className="flex flex-col">
+                <Link href={`/products/${product.id}`} className="mb-4">
+                  <h2 className="text-lg font-semibold">{product.name}</h2>
+                  <p className="text-sm text-gray-500">${product.price}</p>
+                </Link>
+
+                <button
+                  onClick={() => handleAddToCart(product.id)}
+                  className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+                >
+                  Add to cart
+                </button>
+              </Card>
+            ))}
+          </div>
+        )}
+      </main>
+    </div>
   );
 }
