@@ -86,6 +86,10 @@ export function Navbar() {
 
           {isAuthenticated ? (
             <>
+              <Link href="/dashboard" className="hover:text-gray-300">
+                Dashboard
+              </Link>
+
               <Link href="/cart" className="relative">
                 <ShoppingCart className="w-6 h-6 hover:text-gray-300" />
                 {cartCount > 0 && (
