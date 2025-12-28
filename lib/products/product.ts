@@ -1,8 +1,8 @@
 import { apiFetch } from "../api";
-import { ProductFilters } from "./types/types";
+import { ProductFilters, PaginatedProducts, Product } from "./types/types";
 
 export const ProductApi = {
-  getProducts(filters: ProductFilters = {}) {
+  async getProducts(filters: ProductFilters = {}): Promise<PaginatedProducts> {
     const params = new URLSearchParams();
 
     if (filters.search) params.append("search", filters.search);
@@ -15,10 +15,11 @@ export const ProductApi = {
     if (filters.limit) params.append("limit", String(filters.limit));
 
     const query = params.toString();
+
     return apiFetch(`/products${query ? `?${query}` : ""}`);
   },
 
-  getProductById(id: number) {
+  async getProductById(id: number): Promise<Product> {
     return apiFetch(`/products/${id}`);
   },
 };
