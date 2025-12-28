@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
         {/* STATS */}
         <div className="grid sm:grid-cols-3 gap-6">
-          <StatCard title="Orders" value="0" />
+          <StatCard title="Orders" value={user.order} />
           <StatCard title="Account Status" value="Active" />
           <StatCard title="Role" value={user.role} />
         </div>
@@ -73,9 +73,12 @@ export default function DashboardPage() {
         {/* NAVIGATION */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Navigation</h3>
+
           <div className="grid sm:grid-cols-2 gap-4">
             <NavLink href="/home" label="🏠 Home" />
             <NavLink href="/profile" label="👤 Profile" />
+            <NavLink href="/orders" label="📦 Orders" />
+
             {(user.role === "admin" || user.role === "superadmin") && (
               <NavLink href="/admin" label="🛠 Admin Panel" />
             )}
@@ -85,6 +88,8 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+/* ---------- COMPONENTS ---------- */
 
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
