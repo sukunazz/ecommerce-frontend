@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { ProductApi } from "@/lib/products/product";
-import { Product, ProductFilters } from "@/lib/products/types/types";
+import {
+  Product,
+  ProductFilters,
+  PaginatedProducts,
+} from "@/lib/products/types/types";
 
 export function useProducts(filters: ProductFilters = {}) {
   const [products, setProducts] = useState<Product[]>([]);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [meta, setMeta] = useState<PaginatedProducts["meta"] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,12 +21,10 @@ export function useProducts(filters: ProductFilters = {}) {
     setError(null);
 
     ProductApi.getProducts(filters)
-      .then((res) => {
+      .then((res: PaginatedProducts) => {
         if (!mounted) return;
-
         setProducts(res.items);
-        setPage(res.meta.page);
-        setTotalPages(res.meta.totalPages);
+        setMeta(res.meta);
       })
       .catch((err) => {
         if (!mounted) return;
@@ -40,8 +41,7 @@ export function useProducts(filters: ProductFilters = {}) {
 
   return {
     products,
-    page,
-    totalPages,
+    meta,
     loading,
     error,
   };
