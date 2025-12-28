@@ -4,6 +4,7 @@ import { useAuthContext } from "@/context/authContext/AuthContext";
 import Header from "@/components/home/Header";
 import Body from "@/components/home/body";
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
+import ProductsGrid from "@/components/home/ProductsGrid";
 
 export default function Home() {
   const { isAuthenticated, loading } = useAuthContext();
