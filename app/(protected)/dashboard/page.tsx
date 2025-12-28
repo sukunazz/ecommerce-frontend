@@ -1,20 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthContext } from "@/context/authContext/AuthContext";
+import { OrdersApi } from "@/lib/orders/order";
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 
 export default function DashboardPage() {
   const { user, loading, logout, isAuthenticated } = useAuthContext();
   const router = useRouter();
 
+  const [orderCount, setOrderCount] = useState<number>(0);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+
   useEffect(() => {
     if (!loading && !isAuthenticated) {
       router.replace("/login");
     }
   }, [loading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const loadOrderCount = async () => {
+      try {
+        const orders = await OrdersApi.history();
+        setOrderCount(orders.length);
+      } catch {
+        setOrderCount(0);
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    loadOrderCount();
+  }, [isAuthenticated]);
 
   if (loading) {
     return (
@@ -65,7 +86,10 @@ export default function DashboardPage() {
 
         {/* STATS */}
         <div className="grid sm:grid-cols-3 gap-6">
-          <StatCard title="Orders" value={user.order} />
+          <StatCard
+            title="Orders"
+            value={ordersLoading ? "…" : String(orderCount)}
+          />
           <StatCard title="Account Status" value="Active" />
           <StatCard title="Role" value={user.role} />
         </div>
@@ -73,12 +97,10 @@ export default function DashboardPage() {
         {/* NAVIGATION */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Navigation</h3>
-
           <div className="grid sm:grid-cols-2 gap-4">
             <NavLink href="/home" label="🏠 Home" />
             <NavLink href="/profile" label="👤 Profile" />
             <NavLink href="/orders" label="📦 Orders" />
-
             {(user.role === "admin" || user.role === "superadmin") && (
               <NavLink href="/admin" label="🛠 Admin Panel" />
             )}
@@ -88,8 +110,6 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-/* ---------- COMPONENTS ---------- */
 
 function StatCard({ title, value }: { title: string; value: string }) {
   return (
