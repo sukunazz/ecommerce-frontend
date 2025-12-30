@@ -65,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading,
         error,
         login,
+        setUser,
         logout,
         checkSession,
       }}
