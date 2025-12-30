@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import { useAuthContext } from "@/context/authContext/AuthContext";
@@ -55,7 +56,7 @@ export function Navbar() {
           Oracle
         </Link>
 
-        {/* SEARCH (DESKTOP) */}
+        {/* SEARCH */}
         <form
           onSubmit={handleSearch}
           className="hidden md:flex items-center w-1/3"
@@ -99,12 +100,28 @@ export function Navbar() {
                 )}
               </Link>
 
+              {/* PROFILE DROPDOWN */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setOpen((p) => !p)}
-                  className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center font-semibold"
+                  className="
+                    w-9 h-9 rounded-full
+                    bg-white/10 hover:bg-white/20
+                    flex items-center justify-center
+                    overflow-hidden
+                  "
                 >
-                  {avatarLetter}
+                  {user?.profileImage ? (
+                    <Image
+                      src={user.profileImage}
+                      alt="Profile"
+                      width={36}
+                      height={36}
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <span className="font-semibold">{avatarLetter}</span>
+                  )}
                 </button>
 
                 {open && (
