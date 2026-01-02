@@ -96,7 +96,7 @@ export default function ProductsClient() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <main className="grow max-w-7xl px-6 py-10 mx-auto">
+      <main className="grow w-full px-6 lg:px-10 py-10">
         <h1 className="text-3xl font-bold mb-6">Products</h1>
 
         {/* SEARCH + SORT */}
@@ -127,7 +127,7 @@ export default function ProductsClient() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
             {[...Array(6)].map((_, idx) => (
               <div key={idx} className="space-y-2">
                 <Skeleton height="200px" width="100%" />
