@@ -22,7 +22,7 @@ export default function VerifyClient() {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        router.push("/auth/login");
+        router.push("/login");
       }, 1500);
 
       return () => clearTimeout(timer);

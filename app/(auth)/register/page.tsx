@@ -45,7 +45,7 @@ export default function RegisterPage() {
         firstName || undefined,
         lastName || undefined
       );
-      router.push(`/auth/verify?email=${encodeURIComponent(email)}`);
+      router.push(`/verify?email=${encodeURIComponent(email)}`);
     } catch (err: any) {
       setError(err.message || "Registration failed");
     } finally {
