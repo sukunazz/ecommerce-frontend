@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-/* ===================== TYPES ===================== */
 type Product = {
   id: number;
   name: string;
@@ -11,143 +10,167 @@ type Product = {
   image?: string | null;
 };
 
-/* ===================== API ===================== */
-async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${url}`, {
-    credentials: "include",
-    ...options,
-  });
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(text || "Request failed");
-  }
-
-  return res.json();
-}
-
-/* ===================== HOOK ===================== */
-function useProductAdmin() {
+export default function ProductsAdminPage() {
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // ✅ UPLOAD IMAGE (PATCH /products/:id/image)
-  async function uploadImage(productId: number, file: File) {
-    setLoading(true);
-    setError(null);
+  // add product state
+  const [name, setName] = useState("");
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
 
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
+  // ================= FETCH PRODUCTS =================
+  const fetchProducts = async () => {
+    const res = await fetch(`${API_URL}/products`);
+    const data = await res.json();
+    setProducts(data.items);
+  };
 
-      return await apiFetch<Product>(`/products/${productId}/image`, {
-        method: "PATCH",
-        body: formData,
-      });
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // ================= ADD PRODUCT =================
+  const addProduct = async () => {
+    if (!name || !price || !stock) {
+      alert("All fields are required");
+      return;
     }
-  }
 
-  // ✅ UPDATE STOCK (PATCH /products/:id)
-  async function updateStock(productId: number, stock: number) {
     setLoading(true);
-    setError(null);
 
-    try {
-      return await apiFetch<Product>(`/products/${productId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stock }),
-      });
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }
+    await fetch(`${API_URL}/products`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        price: Number(price),
+        stock: Number(stock),
+      }),
+    });
 
-  return { uploadImage, updateStock, loading, error };
-}
+    setName("");
+    setPrice("");
+    setStock("");
 
-/* ===================== PAGE ===================== */
-export default function ProductManagePage() {
-  const { uploadImage, updateStock, loading, error } = useProductAdmin();
+    await fetchProducts();
+    setLoading(false);
+  };
 
-  const [productId, setProductId] = useState<number>(1);
-  const [stock, setStock] = useState<number>(0);
-  const [image, setImage] = useState<File | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  // ================= UPDATE STOCK =================
+  const updateStock = async (id: number, stock: number) => {
+    await fetch(`${API_URL}/products/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ stock }),
+    });
 
-  async function handleImageUpload() {
-    if (!image) return;
+    await fetchProducts();
+  };
 
-    await uploadImage(productId, image);
-    setSuccess("✅ Product image uploaded successfully");
-  }
+  // ================= UPLOAD IMAGE =================
+  const uploadImage = async (id: number, file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
 
-  async function handleStockUpdate() {
-    await updateStock(productId, stock);
-    setSuccess("✅ Product stock updated successfully");
-  }
+    await fetch(`${API_URL}/products/${id}/image`, {
+      method: "POST",
+      body: formData,
+    });
+
+    await fetchProducts(); // 🔑 this fixes image disappearing
+  };
 
   return (
-    <div className="max-w-xl mx-auto p-8 space-y-6 text-white">
-      <h1 className="text-2xl font-semibold">Product Image & Stock Admin</h1>
+    <div className="min-h-screen bg-gray-100 p-8 text-gray-900">
+      <h1 className="text-3xl font-bold mb-6">Product Management</h1>
 
-      {/* PRODUCT ID */}
-      <div>
-        <label className="block text-sm mb-1">Product ID</label>
-        <input
-          type="number"
-          value={productId}
-          onChange={(e) => setProductId(+e.target.value)}
-          className="w-full px-3 py-2 rounded bg-white/10 border border-white/10"
-        />
+      {/* ================= ADD PRODUCT ================= */}
+      <div className="bg-white p-6 rounded-lg shadow mb-10">
+        <h2 className="text-xl font-semibold mb-4">Add Product</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input
+            className="border p-3 rounded text-black"
+            placeholder="Product name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <input
+            className="border p-3 rounded text-black"
+            placeholder="Price"
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+
+          <input
+            className="border p-3 rounded text-black"
+            placeholder="Stock"
+            type="number"
+            value={stock}
+            onChange={(e) => setStock(e.target.value)}
+          />
+
+          <button
+            onClick={addProduct}
+            disabled={loading}
+            className="bg-blue-600 text-white rounded px-4 py-3 hover:bg-blue-700"
+          >
+            Add
+          </button>
+        </div>
       </div>
 
-      {/* IMAGE UPLOAD */}
-      <div className="space-y-2">
-        <label className="block text-sm">Upload Product Image</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setImage(e.target.files?.[0] || null)}
-        />
-        <button
-          onClick={handleImageUpload}
-          disabled={loading}
-          className="px-4 py-2 bg-indigo-600 rounded hover:bg-indigo-700 disabled:opacity-50"
-        >
-          Upload Image
-        </button>
-      </div>
+      {/* ================= PRODUCTS LIST ================= */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {products.map((p) => (
+          <div key={p.id} className="bg-white p-5 rounded-lg shadow space-y-3">
+            <h3 className="text-lg font-semibold">{p.name}</h3>
 
-      {/* STOCK UPDATE */}
-      <div className="space-y-2">
-        <label className="block text-sm">Update Stock</label>
-        <input
-          type="number"
-          value={stock}
-          onChange={(e) => setStock(+e.target.value)}
-          className="w-full px-3 py-2 rounded bg-white/10 border border-white/10"
-        />
-        <button
-          onClick={handleStockUpdate}
-          disabled={loading}
-          className="px-4 py-2 bg-green-600 rounded hover:bg-green-700 disabled:opacity-50"
-        >
-          Update Stock
-        </button>
-      </div>
+            {p.image ? (
+              <img
+                src={p.image}
+                alt={p.name}
+                className="w-full h-40 object-cover rounded"
+              />
+            ) : (
+              <div className="h-40 flex items-center justify-center bg-gray-200 rounded text-gray-600">
+                No image
+              </div>
+            )}
 
-      {/* STATUS */}
-      {error && <p className="text-sm text-red-400">{error}</p>}
-      {success && <p className="text-sm text-green-400">{success}</p>}
+            <p className="font-medium">Price: ${p.price}</p>
+
+            {/* UPDATE STOCK */}
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                defaultValue={p.stock}
+                className="border p-2 w-24 rounded text-black"
+                onBlur={(e) => updateStock(p.id, Number(e.target.value))}
+              />
+              <span>Stock</span>
+            </div>
+
+            {/* UPLOAD IMAGE */}
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) =>
+                e.target.files && uploadImage(p.id, e.target.files[0])
+              }
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
