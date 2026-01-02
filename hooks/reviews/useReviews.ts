@@ -1,6 +1,4 @@
-// frontend/src/hooks/useReviews.ts
 "use client";
-
 import { useEffect, useState } from "react";
 import {
   ReviewsApi,
