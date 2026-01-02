@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useProduct } from "@/hooks/product/useProductById";
 import { useReviews } from "@/hooks/reviews/useReviews";
+import { useState } from "react";
 
 /* ================= PAGE ================= */
 
