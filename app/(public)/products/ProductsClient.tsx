@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useProducts } from "@/hooks/product/useProduct";
 import { useCart } from "@/context/cart/CartContext";
@@ -10,7 +11,34 @@ import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 import { useToast } from "@/context/toast/ToastContext";
 import { useState } from "react";
 
-export default function ProductsPage() {
+function RatingStars({
+  rating = 0,
+  count = 0,
+}: {
+  rating?: number;
+  count?: number;
+}) {
+  const fullStars = Math.floor(rating);
+  const emptyStars = 5 - fullStars;
+
+  return (
+    <div className="flex items-center gap-1 text-sm">
+      <div className="flex text-yellow-400">
+        {[...Array(fullStars)].map((_, i) => (
+          <span key={`full-${i}`}>★</span>
+        ))}
+        {[...Array(emptyStars)].map((_, i) => (
+          <span key={`empty-${i}`} className="text-gray-300">
+            ★
+          </span>
+        ))}
+      </div>
+      <span className="text-gray-500 text-xs">({count})</span>
+    </div>
+  );
+}
+
+export default function ProductsClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const toast = useToast();
@@ -54,7 +82,7 @@ export default function ProductsPage() {
   async function handleAddToCart(productId: number) {
     if (!isAuthenticated) {
       toast.info("Please login to add items to the cart");
-      router.push("/auth/login");
+      router.push("/login");
       return;
     }
 
@@ -102,7 +130,7 @@ export default function ProductsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, idx) => (
               <div key={idx} className="space-y-2">
-                <Skeleton height="150px" width="100%" />
+                <Skeleton height="200px" width="100%" />
                 <Skeleton height="20px" width="80%" />
                 <Skeleton height="20px" width="60%" />
                 <Skeleton height="35px" width="100%" />
@@ -114,12 +142,34 @@ export default function ProductsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((product) => (
-              <Card key={product.id} className="flex flex-col">
-                <Link href={`/products/${product.id}`} className="mb-4">
-                  <h2 className="text-lg font-semibold">{product.name}</h2>
-                  <p className="text-sm text-gray-500">${product.price}</p>
+              <Card key={product.id}>
+                {/* IMAGE */}
+                <Link href={`/products/${product.id}`}>
+                  <div className="relative w-full h-48 mb-4 rounded-xl overflow-hidden bg-gray-100">
+                    <Image
+                      src={product.image || "/placeholder.png"}
+                      alt={product.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
                 </Link>
 
+                {/* INFO */}
+                <Link href={`/products/${product.id}`} className="space-y-1">
+                  <h2 className="text-lg font-semibold">{product.name}</h2>
+
+                  <RatingStars
+                    rating={product.averageRating}
+                    count={product.reviewCount}
+                  />
+
+                  <p className="text-lg font-bold mt-1">
+                    ${product.price.toFixed(2)}
+                  </p>
+                </Link>
+
+                {/* ACTION */}
                 <button
                   onClick={() => handleAddToCart(product.id)}
                   className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"

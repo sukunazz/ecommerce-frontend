@@ -5,6 +5,8 @@ export interface Product {
   price: number;
   image?: string | null;
   createdAt: string;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 /* sorting values supported by backend */

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginSchema } from "@/lib/validation/login.schema";
-import { useAuthContext } from "@/context/auth/AuthContext";
+import { useAuthContext } from "@/context/authContext/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
