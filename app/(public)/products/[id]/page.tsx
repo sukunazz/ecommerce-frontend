@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useProduct } from "@/hooks/product/useProductById";
 import { useReviews } from "@/hooks/reviews/useReviews";
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 
 /* ================= PAGE ================= */
 
@@ -45,7 +46,17 @@ export default function ProductDetailsPage() {
 
   /* ================= STATES ================= */
 
-  if (loading) return <p className="p-6">Loading product...</p>;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-6 px-6">
+        <Skeleton variant="circle" width="80px" height="80px" />
+        <Skeleton height="30px" width="60%" />
+        <Skeleton height="20px" width="80%" />
+        <Skeleton height="20px" width="70%" />
+        <Skeleton height="300px" width="100%" />
+      </div>
+    );
+  }
   if (error) return <p className="p-6 text-red-500">{error}</p>;
   if (!product) return null;
 

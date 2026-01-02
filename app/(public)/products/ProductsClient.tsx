@@ -94,6 +94,18 @@ export default function ProductsClient() {
     }
   }
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center space-y-6 px-6">
+        <Skeleton variant="circle" width="80px" height="80px" />
+        <Skeleton height="30px" width="60%" />
+        <Skeleton height="20px" width="80%" />
+        <Skeleton height="20px" width="70%" />
+        <Skeleton height="300px" width="100%" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <main className="grow w-full px-6 lg:px-10 py-10">
