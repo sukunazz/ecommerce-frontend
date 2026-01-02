@@ -6,33 +6,32 @@ import { useProduct } from "@/hooks/product/useProductById";
 import { useReviews } from "@/hooks/reviews/useReviews";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton/Skeleton";
-
-/* ================= PAGE ================= */
+import { useAuthContext } from "@/context/authContext/AuthContext";
 
 export default function ProductDetailsPage() {
   const params = useParams();
   const productId = Number(params.id);
 
-  /* ---------- Product ---------- */
   const { product, loading, error } = useProduct(productId);
-
-  /* ---------- Reviews ---------- */
   const {
     reviews,
-    loading: loadingReviews,
-    error: reviewsError,
     addReview,
+    updateReview,
+    deleteReview,
+    loading: loadingReviews,
   } = useReviews(productId);
 
-  /* ---------- Review form ---------- */
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const { isAuthenticated } = useAuthContext();
 
-  async function handleSubmitReview(e: React.FormEvent) {
+  /* Submit new review */
+  const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitting(true);
+    if (!isAuthenticated) return alert("Login to submit a review");
 
+    setSubmitting(true);
     try {
       await addReview({ rating, comment });
       setRating(5);
@@ -42,67 +41,44 @@ export default function ProductDetailsPage() {
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
-  /* ================= STATES ================= */
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-6 px-6">
-        <Skeleton variant="circle" width="80px" height="80px" />
-        <Skeleton height="30px" width="60%" />
-        <Skeleton height="20px" width="80%" />
-        <Skeleton height="20px" width="70%" />
-        <Skeleton height="300px" width="100%" />
-      </div>
-    );
-  }
-  if (error) return <p className="p-6 text-red-500">{error}</p>;
+  if (loading) return <Skeleton height="400px" width="100%" />;
+  if (error) return <p className="text-red-500">{error}</p>;
   if (!product) return null;
 
-  /* ================= UI ================= */
-
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10 space-y-14">
-      {/* ================= PRODUCT ================= */}
+    <div className="max-w-6xl mx-auto px-4 py-10 space-y-10">
+      {/* PRODUCT INFO */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Image */}
         <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
           <Image
-            src={product.image || "/images/placeholder.png"}
+            src={product.image || "/placeholder.png"}
             alt={product.name}
             fill
             className="object-cover"
-            priority
           />
         </div>
-
-        {/* Info */}
         <div className="space-y-4">
           <h1 className="text-3xl font-bold">{product.name}</h1>
-
+          <p className="text-yellow-400 font-semibold">
+            ⭐ {product.averageRating?.toFixed(1) || 0} (
+            {product.reviewCount || 0} reviews)
+          </p>
           <p className="text-2xl font-semibold text-green-600">
             ${product.price}
           </p>
-
           <p className="text-gray-700 leading-relaxed">{product.description}</p>
-
-          <button className="bg-black text-white px-6 py-3 rounded-lg">
-            Add to Cart
-          </button>
         </div>
       </div>
 
-      {/* ================= REVIEWS ================= */}
-      <section className="space-y-6">
+      {/* REVIEWS */}
+      <section className="space-y-4">
         <h2 className="text-2xl font-bold">Customer Reviews</h2>
 
         {loadingReviews && <p>Loading reviews...</p>}
-        {reviewsError && <p className="text-red-500">{reviewsError}</p>}
 
-        {reviews.length === 0 && !loadingReviews && (
-          <p className="text-gray-500">No reviews yet.</p>
-        )}
+        {reviews.length === 0 && !loadingReviews && <p>No reviews yet.</p>}
 
         <div className="space-y-4">
           {reviews.map((review) => (
@@ -111,24 +87,43 @@ export default function ProductDetailsPage() {
                 <p className="font-semibold">{review.user.email}</p>
                 <p>⭐ {review.rating}/5</p>
               </div>
-
               <p className="mt-2 text-gray-700">{review.comment}</p>
-
               <p className="text-xs text-gray-400 mt-1">
                 {new Date(review.createdAt).toLocaleDateString()}
               </p>
+
+              {/* EDIT / DELETE */}
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={() => {
+                    const newComment = prompt("Edit review:", review.comment);
+                    if (newComment)
+                      updateReview(review.id, { comment: newComment });
+                  }}
+                  className="text-blue-500"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm("Delete review?")) deleteReview(review.id);
+                  }}
+                  className="text-red-500"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ================= ADD REVIEW ================= */}
+      {/* ADD REVIEW */}
       <section className="border-t pt-8 space-y-4">
         <h3 className="text-xl font-semibold">Write a Review</h3>
-
         <form onSubmit={handleSubmitReview} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium">Rating</label>
+            <label>Rating</label>
             <select
               value={rating}
               onChange={(e) => setRating(Number(e.target.value))}
@@ -141,18 +136,15 @@ export default function ProductDetailsPage() {
               ))}
             </select>
           </div>
-
           <div>
-            <label className="block text-sm font-medium">Comment</label>
+            <label>Comment</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              required
               rows={4}
               className="border rounded px-3 py-2 w-full"
             />
           </div>
-
           <button
             type="submit"
             disabled={submitting}

@@ -10,7 +10,7 @@ export interface Review {
   createdAt: string;
   user: {
     id: number;
-    name: string;
+    name?: string;
     email: string;
   };
 }
@@ -20,19 +20,39 @@ export interface CreateReviewDto {
   comment: string;
 }
 
+export interface UpdateReviewDto {
+  rating?: number;
+  comment?: string;
+}
+
 /* ================= API FUNCTIONS ================= */
 
 export const ReviewsApi = {
-  /* Get all reviews for a product */
+  // GET reviews for a product
   getByProduct(productId: number) {
     return apiFetch<Review[]>(`/reviews/product/${productId}`);
   },
 
-  /* Create a review for a product */
+  // CREATE a review
   create(productId: number, data: CreateReviewDto) {
     return apiFetch<Review>(`/reviews/product/${productId}`, {
       method: "POST",
       body: JSON.stringify(data),
+    });
+  },
+
+  // UPDATE a review
+  update(reviewId: number, data: UpdateReviewDto) {
+    return apiFetch<Review>(`/reviews/${reviewId}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  },
+
+  // DELETE a review
+  delete(reviewId: number) {
+    return apiFetch<{ message: string }>(`/reviews/${reviewId}`, {
+      method: "DELETE",
     });
   },
 };

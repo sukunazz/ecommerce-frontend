@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton/Skeleton";
 import { useToast } from "@/context/toast/ToastContext";
 import { useState } from "react";
 
+/* ⭐ Rating Component */
 function RatingStars({
   rating = 0,
   count = 0,
@@ -51,23 +52,15 @@ export default function ProductsClient() {
 
   const [localSearch, setLocalSearch] = useState(search);
 
-  const { products, loading, error } = useProducts({
-    search,
-    sort,
-  });
+  const { products, loading, error } = useProducts({ search, sort });
 
   const { addToCart } = useCart();
   const { isAuthenticated } = useAuthContext();
 
   function applySearch() {
     const params = new URLSearchParams(searchParams.toString());
-
-    if (localSearch.trim()) {
-      params.set("search", localSearch.trim());
-    } else {
-      params.delete("search");
-    }
-
+    if (localSearch.trim()) params.set("search", localSearch.trim());
+    else params.delete("search");
     router.push(`/products?${params.toString()}`);
   }
 
@@ -75,7 +68,6 @@ export default function ProductsClient() {
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set("sort", value);
     else params.delete("sort");
-
     router.push(`/products?${params.toString()}`);
   }
 
@@ -85,7 +77,6 @@ export default function ProductsClient() {
       router.push("/login");
       return;
     }
-
     try {
       await addToCart(productId, 1);
       toast.success("Item added to cart");
@@ -97,11 +88,9 @@ export default function ProductsClient() {
   if (loading) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center space-y-6 px-6">
-        <Skeleton variant="circle" width="80px" height="80px" />
-        <Skeleton height="30px" width="60%" />
-        <Skeleton height="20px" width="80%" />
-        <Skeleton height="20px" width="70%" />
-        <Skeleton height="300px" width="100%" />
+        {[...Array(6)].map((_, idx) => (
+          <Skeleton key={idx} height="250px" width="300px" />
+        ))}
       </div>
     );
   }
@@ -119,14 +108,12 @@ export default function ProductsClient() {
             placeholder="Search products..."
             className="border rounded-lg px-4 py-2 w-full sm:w-1/2"
           />
-
           <button
             onClick={applySearch}
             className="px-4 py-2 rounded-lg bg-black text-white"
           >
             Search
           </button>
-
           <select
             value={sort || ""}
             onChange={(e) => updateSort(e.target.value)}
@@ -138,60 +125,47 @@ export default function ProductsClient() {
           </select>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {[...Array(6)].map((_, idx) => (
-              <div key={idx} className="space-y-2">
-                <Skeleton height="200px" width="100%" />
-                <Skeleton height="20px" width="80%" />
-                <Skeleton height="20px" width="60%" />
-                <Skeleton height="35px" width="100%" />
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => (
-              <Card key={product.id}>
-                {/* IMAGE */}
-                <Link href={`/products/${product.id}`}>
-                  <div className="relative w-full h-48 mb-4 rounded-xl overflow-hidden bg-gray-100">
-                    <Image
-                      src={product.image || "/placeholder.png"}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                </Link>
+        {error && <p className="text-red-500">{error}</p>}
 
-                {/* INFO */}
-                <Link href={`/products/${product.id}`} className="space-y-1">
-                  <h2 className="text-lg font-semibold">{product.name}</h2>
-
-                  <RatingStars
-                    rating={product.averageRating}
-                    count={product.reviewCount}
+        <div className="flex flex-wrap gap-6">
+          {products.map((product) => (
+            <Card key={product.id} className="w-72 flex flex-col">
+              {/* IMAGE */}
+              <Link href={`/products/${product.id}`}>
+                <div className="relative w-full h-48 mb-4 rounded-xl overflow-hidden bg-gray-100">
+                  <Image
+                    src={product.image || "/placeholder.png"}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
                   />
+                </div>
+              </Link>
 
-                  <p className="text-lg font-bold mt-1">
-                    ${product.price.toFixed(2)}
-                  </p>
-                </Link>
+              {/* INFO */}
+              <Link href={`/products/${product.id}`} className="space-y-1">
+                <h2 className="text-lg font-semibold">{product.name}</h2>
 
-                {/* ACTION */}
-                <button
-                  onClick={() => handleAddToCart(product.id)}
-                  className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
-                >
-                  Add to cart
-                </button>
-              </Card>
-            ))}
-          </div>
-        )}
+                <RatingStars
+                  rating={product.averageRating || 0}
+                  count={product.reviewCount || 0}
+                />
+
+                <p className="text-lg font-bold mt-1">
+                  ${product.price.toFixed(2)}
+                </p>
+              </Link>
+
+              {/* ACTION */}
+              <button
+                onClick={() => handleAddToCart(product.id)}
+                className="mt-auto w-full bg-black text-white py-2 rounded-lg hover:bg-gray-800"
+              >
+                Add to cart
+              </button>
+            </Card>
+          ))}
+        </div>
       </main>
     </div>
   );

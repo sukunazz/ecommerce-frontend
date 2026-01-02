@@ -2,7 +2,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ReviewsApi, Review, CreateReviewDto } from "@/lib/reviews/reviews";
+import {
+  ReviewsApi,
+  Review,
+  CreateReviewDto,
+  UpdateReviewDto,
+} from "@/lib/reviews/reviews";
 
 export function useReviews(productId: number) {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -22,18 +27,22 @@ export function useReviews(productId: number) {
   }
 
   async function addReview(data: CreateReviewDto) {
-    try {
-      await ReviewsApi.create(productId, data);
-      await fetchReviews(); // refresh after submit
-    } catch (err: any) {
-      throw err;
-    }
+    await ReviewsApi.create(productId, data);
+    await fetchReviews();
+  }
+
+  async function updateReview(reviewId: number, data: UpdateReviewDto) {
+    await ReviewsApi.update(reviewId, data);
+    await fetchReviews();
+  }
+
+  async function deleteReview(reviewId: number) {
+    await ReviewsApi.delete(reviewId);
+    await fetchReviews();
   }
 
   useEffect(() => {
-    if (productId) {
-      fetchReviews();
-    }
+    if (productId) fetchReviews();
   }, [productId]);
 
   return {
@@ -41,6 +50,8 @@ export function useReviews(productId: number) {
     loading,
     error,
     addReview,
+    updateReview,
+    deleteReview,
     refetch: fetchReviews,
   };
 }
