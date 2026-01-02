@@ -98,7 +98,10 @@ export default function ProductDetailsPage() {
                   onClick={() => {
                     const newComment = prompt("Edit review:", review.comment);
                     if (newComment)
-                      updateReview(review.id, { comment: newComment });
+                      updateReview(review.id, {
+                        rating: review.rating,
+                        comment: newComment,
+                      });
                   }}
                   className="text-blue-500"
                 >
