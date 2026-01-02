@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
-import { useReviews } from "@/hooks/useReviews";
+import { useReviews } from "@/hooks/reviews/useReviews";
 
 /* ================= TYPES ================= */
 
