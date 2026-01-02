@@ -2,24 +2,22 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { z } from "zod";
-
 import { loginSchema } from "@/lib/validation/login.schema";
+import { useAuthContext } from "@/context/auth/AuthContext";
+
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuthContext();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL!;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    // ✅ Frontend validation
     const validation = loginSchema.safeParse({ email, password });
     if (!validation.success) {
       setError(validation.error.issues[0].message);
@@ -29,19 +27,13 @@ export default function LoginPage() {
     try {
       setIsLoading(true);
 
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validation.data),
-      });
+      const success = await login(
+        validation.data.email,
+        validation.data.password
+      );
 
-      if (!res.ok) {
-        const msg = await res.text();
-        throw new Error(msg || "Invalid credentials");
-      }
+      if (!success) return;
 
-      // ✅ Login success → redirect
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Login failed");
