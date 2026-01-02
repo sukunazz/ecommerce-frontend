@@ -25,7 +25,7 @@ export default function Home() {
     <div>
       <Header isAuthenticated={isAuthenticated} />
       <Body isAuthenticated={isAuthenticated} />
-      <ProductsGrid title="Latest Products" initialLimit={6} />
+      <ProductsGrid title="Latest Products" initialLimit={3} />
     </div>
   );
 }
