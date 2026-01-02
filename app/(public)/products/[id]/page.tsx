@@ -1,67 +1,103 @@
+// frontend/src/app/products/[id]/page.tsx
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
-import { useProduct } from "@/hooks/product/useProductById";
-import { useCart } from "@/context/cart/CartContext";
-import { useAuthContext } from "@/context/authContext/AuthContext";
-import { Card } from "@/components/ui/Card/ProductCard";
-import { Skeleton } from "@/components/ui/skeleton/Skeleton";
-import { useToast } from "@/context/toast/ToastContext";
+import { useState } from "react";
+import { useParams } from "next/navigation";
+import { useReviews } from "@/hooks/reviews/useReviews";
 
 export default function ProductDetailsPage() {
-  const { id } = useParams();
-  const router = useRouter();
-  const productId = Number(id);
+  const params = useParams();
+  const productId = Number(params.id);
 
-  const { isAuthenticated } = useAuthContext();
-  const { product, loading, error } = useProduct(productId);
-  const { addToCart } = useCart();
-  const toast = useToast();
+  const { reviews, loading, error, addReview } = useReviews(productId);
 
-  const handleAddToCart = async () => {
-    if (!isAuthenticated) {
-      toast.info("Please login to add items to the cart");
-      router.push("/auth/login");
-      return;
-    }
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
 
     try {
-      await addToCart(product!.id, 1);
-      toast.success("Item added to cart");
+      setSubmitting(true);
+      await addReview({ rating, comment });
+      setComment("");
+      setRating(5);
     } catch (err: any) {
-      toast.error(err.message || "Unable to add item to cart");
+      alert(err.message || "Failed to submit review");
+    } finally {
+      setSubmitting(false);
     }
-  };
+  }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <main className="flex-1 max-w-2xl  px-6 py-10">
-        {loading ? (
-          <div className="space-y-6">
-            <Skeleton height="40px" width="60%" />
-            <Skeleton height="20px" width="100%" />
-            <Skeleton height="20px" width="90%" />
-            <Skeleton height="40px" width="30%" />
-            <Skeleton height="200px" width="100%" />
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <h1 className="text-2xl font-bold">Product Reviews</h1>
+
+      {/* Reviews */}
+      {loading && <p>Loading reviews...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+
+      {!loading && reviews.length === 0 && (
+        <p className="text-gray-500">No reviews yet.</p>
+      )}
+
+      <div className="space-y-4">
+        {reviews.map((review) => (
+          <div
+            key={review.id}
+            className="border rounded-lg p-4 bg-white shadow-sm"
+          >
+            <div className="flex justify-between">
+              <p className="font-semibold">{review.user.name}</p>
+              <p className="text-sm">⭐ {review.rating}/5</p>
+            </div>
+            <p className="text-gray-700 mt-2">{review.comment}</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {new Date(review.createdAt).toLocaleDateString()}
+            </p>
           </div>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : !product ? (
-          <p>Product not found</p>
-        ) : (
-          <Card>
-            <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-            <p className="text-gray-400 mb-6">{product.description}</p>
-            <p className="text-2xl font-semibold mb-6">${product.price}</p>
-            <button
-              onClick={handleAddToCart}
-              className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition"
-            >
-              Add to Cart
-            </button>
-          </Card>
-        )}
-      </main>
+        ))}
+      </div>
+
+      {/* Add Review */}
+      <form onSubmit={handleSubmit} className="border-t pt-6 space-y-4">
+        <h2 className="text-lg font-semibold">Add a Review</h2>
+
+        <div>
+          <label className="block text-sm font-medium">Rating</label>
+          <select
+            value={rating}
+            onChange={(e) => setRating(Number(e.target.value))}
+            className="border rounded px-3 py-2 w-full"
+          >
+            {[5, 4, 3, 2, 1].map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium">Comment</label>
+          <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            required
+            className="border rounded px-3 py-2 w-full"
+            rows={4}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="bg-black text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          {submitting ? "Submitting..." : "Submit Review"}
+        </button>
+      </form>
     </div>
   );
 }
