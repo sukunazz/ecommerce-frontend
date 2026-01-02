@@ -87,7 +87,7 @@ export default function ProductsClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center space-y-6 px-6">
+      <div className="min-h-screen flex items-center justify-center space-y-6 px-6">
         {[...Array(6)].map((_, idx) => (
           <Skeleton key={idx} height="250px" width="300px" />
         ))}
