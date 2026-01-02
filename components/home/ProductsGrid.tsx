@@ -26,7 +26,7 @@ export default function ProductsGrid({
   const totalPages = meta?.totalPages ?? 1;
 
   return (
-    <section className="min-h-screen w-full flex flex-col md:flex-row bg-gray-50 mx-auto px-6 py-10 space-y-6">
+    <section className="min-h-screen w-full flex md:flex-col  bg-gray-50 mx-auto px-6 py-10 space-y-6">
       {/* Title */}
       {title && <h2 className="text-2xl font-bold text-gray-900">{title}</h2>}
 
