@@ -52,4 +52,31 @@ export const authApi = {
     console.log("✅ Me response:", response);
     return response;
   },
+  async requestChangePassword(currentPassword: string) {
+    return apiFetch("/auth/change-password/request", {
+      method: "POST",
+      body: JSON.stringify({ currentPassword }),
+    });
+  },
+
+  async confirmChangePassword(code: string, newPassword: string) {
+    return apiFetch("/auth/change-password/confirm", {
+      method: "POST",
+      body: JSON.stringify({ code, newPassword }),
+    });
+  },
+
+  async forgotPassword(email: string) {
+    return apiFetch("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    return apiFetch("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ email, code, newPassword }),
+    });
+  },
 };
