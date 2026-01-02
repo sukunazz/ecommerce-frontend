@@ -5,7 +5,13 @@ export const dynamic = "force-dynamic";
 
 export default function ProductsPage() {
   return (
-    <Suspense fallback={<div>Loading products...</div>}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex flex-col items-center">
+          Loading products...
+        </div>
+      }
+    >
       <ProductsClient />
     </Suspense>
   );
