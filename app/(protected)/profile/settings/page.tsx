@@ -21,9 +21,16 @@ export default function ProfileSettingsPage() {
       setLoading(true);
 
       if (step === "PASSWORD") {
-        await authApi.requestChangePassword(currentPassword);
-        toast.success("Verification code sent to email");
-        setStep("CODE");
+        try {
+          setLoading(true);
+          await authApi.requestChangePassword(currentPassword);
+          toast.success("OTP sent to email");
+        } catch (err: any) {
+          console.error(err);
+          toast.error(err.message || "Failed");
+        } finally {
+          setLoading(false);
+        }
       } else {
         await authApi.confirmChangePassword(code, newPassword);
         toast.success("Password updated successfully");
