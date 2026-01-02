@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { apiFetch } from "@/lib/api";
 
 type Product = {
   id: number;
@@ -10,166 +11,158 @@ type Product = {
   image?: string | null;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL!;
-
-export default function ProductsAdminPage() {
+export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // add product state
+  // ADD PRODUCT STATE
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
 
-  // ================= FETCH PRODUCTS =================
-  const fetchProducts = async () => {
-    const res = await fetch(`${API_URL}/products`);
-    const data = await res.json();
-    setProducts(data.items);
-  };
+  /* ================= LOAD PRODUCTS ================= */
+  async function loadProducts() {
+    const res = await apiFetch<{ items: Product[] }>("/products");
+    setProducts(res.items);
+  }
 
   useEffect(() => {
-    fetchProducts();
+    loadProducts();
   }, []);
 
-  // ================= ADD PRODUCT =================
-  const addProduct = async () => {
+  /* ================= ADD PRODUCT ================= */
+  async function addProduct() {
     if (!name || !price || !stock) {
       alert("All fields are required");
       return;
     }
 
     setLoading(true);
+    try {
+      await apiFetch("/products", {
+        method: "POST",
+        body: JSON.stringify({
+          name,
+          price: Number(price),
+          stock: Number(stock),
+        }),
+      });
 
-    await fetch(`${API_URL}/products`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name,
-        price: Number(price),
-        stock: Number(stock),
-      }),
-    });
+      setName("");
+      setPrice("");
+      setStock("");
+      loadProducts();
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-    setName("");
-    setPrice("");
-    setStock("");
-
-    await fetchProducts();
-    setLoading(false);
-  };
-
-  // ================= UPDATE STOCK =================
-  const updateStock = async (id: number, stock: number) => {
-    await fetch(`${API_URL}/products/${id}`, {
+  /* ================= UPDATE STOCK ================= */
+  async function updateStock(productId: number, newStock: number) {
+    await apiFetch(`/products/${productId}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ stock }),
+      body: JSON.stringify({ stock: newStock }),
     });
 
-    await fetchProducts();
-  };
+    loadProducts();
+  }
 
-  // ================= UPLOAD IMAGE =================
-  const uploadImage = async (id: number, file: File) => {
+  /* ================= UPLOAD IMAGE ================= */
+  async function uploadImage(productId: number, file: File) {
     const formData = new FormData();
     formData.append("image", file);
 
-    await fetch(`${API_URL}/products/${id}/image`, {
-      method: "POST",
+    await apiFetch(`/products/${productId}/image`, {
+      method: "PATCH",
       body: formData,
+      headers: {}, // 🔥 IMPORTANT (remove JSON header)
     });
 
-    await fetchProducts(); // 🔑 this fixes image disappearing
-  };
+    loadProducts();
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 text-gray-900">
-      <h1 className="text-3xl font-bold mb-6">Product Management</h1>
+    <div className="min-h-screen bg-black text-white p-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold mb-8">Admin · Products</h1>
 
-      {/* ================= ADD PRODUCT ================= */}
-      <div className="bg-white p-6 rounded-lg shadow mb-10">
-        <h2 className="text-xl font-semibold mb-4">Add Product</h2>
+        {/* ADD PRODUCT */}
+        <div className="bg-zinc-900 border border-white/10 rounded-xl p-6 mb-10">
+          <h2 className="text-xl font-semibold mb-4">Add Product</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input
-            className="border p-3 rounded text-black"
-            placeholder="Product name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input
+              className="bg-black border border-white/20 rounded px-4 py-3 text-white"
+              placeholder="Product name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
 
-          <input
-            className="border p-3 rounded text-black"
-            placeholder="Price"
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-          />
+            <input
+              type="number"
+              className="bg-black border border-white/20 rounded px-4 py-3 text-white"
+              placeholder="Price"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
 
-          <input
-            className="border p-3 rounded text-black"
-            placeholder="Stock"
-            type="number"
-            value={stock}
-            onChange={(e) => setStock(e.target.value)}
-          />
+            <input
+              type="number"
+              className="bg-black border border-white/20 rounded px-4 py-3 text-white"
+              placeholder="Stock"
+              value={stock}
+              onChange={(e) => setStock(e.target.value)}
+            />
+          </div>
 
           <button
             onClick={addProduct}
             disabled={loading}
-            className="bg-blue-600 text-white rounded px-4 py-3 hover:bg-blue-700"
+            className="mt-5 bg-indigo-600 hover:bg-indigo-700 px-6 py-2 rounded font-medium"
           >
-            Add
+            {loading ? "Adding..." : "Add Product"}
           </button>
         </div>
-      </div>
 
-      {/* ================= PRODUCTS LIST ================= */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {products.map((p) => (
-          <div key={p.id} className="bg-white p-5 rounded-lg shadow space-y-3">
-            <h3 className="text-lg font-semibold">{p.name}</h3>
-
-            {p.image ? (
+        {/* PRODUCT LIST */}
+        <div className="space-y-4">
+          {products.map((product) => (
+            <div
+              key={product.id}
+              className="flex flex-col md:flex-row md:items-center gap-4 bg-zinc-900 border border-white/10 p-4 rounded-xl"
+            >
               <img
-                src={p.image}
-                alt={p.name}
-                className="w-full h-40 object-cover rounded"
+                src={product.image || "/placeholder.png"}
+                className="w-20 h-20 rounded object-cover bg-zinc-800"
               />
-            ) : (
-              <div className="h-40 flex items-center justify-center bg-gray-200 rounded text-gray-600">
-                No image
+
+              <div className="flex-1">
+                <p className="font-semibold">{product.name}</p>
+                <p className="text-sm text-gray-400">Price: ${product.price}</p>
               </div>
-            )}
 
-            <p className="font-medium">Price: ${p.price}</p>
-
-            {/* UPDATE STOCK */}
-            <div className="flex items-center gap-2">
+              {/* UPDATE STOCK */}
               <input
                 type="number"
-                defaultValue={p.stock}
-                className="border p-2 w-24 rounded text-black"
-                onBlur={(e) => updateStock(p.id, Number(e.target.value))}
+                defaultValue={product.stock}
+                className="w-24 bg-black border border-white/20 rounded px-3 py-2 text-white"
+                onBlur={(e) => updateStock(product.id, Number(e.target.value))}
               />
-              <span>Stock</span>
-            </div>
 
-            {/* UPLOAD IMAGE */}
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                e.target.files && uploadImage(p.id, e.target.files[0])
-              }
-            />
-          </div>
-        ))}
+              {/* UPLOAD IMAGE */}
+              <input
+                type="file"
+                accept="image/*"
+                className="text-sm"
+                onChange={(e) =>
+                  e.target.files && uploadImage(product.id, e.target.files[0])
+                }
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
