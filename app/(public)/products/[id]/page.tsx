@@ -19,6 +19,7 @@ export default function ProductDetailsPage() {
     updateReview,
     deleteReview,
     loading: loadingReviews,
+    currentUser,
   } = useReviews(productId);
 
   const [rating, setRating] = useState(5);
@@ -77,7 +78,6 @@ export default function ProductDetailsPage() {
         <h2 className="text-2xl font-bold">Customer Reviews</h2>
 
         {loadingReviews && <p>Loading reviews...</p>}
-
         {reviews.length === 0 && !loadingReviews && <p>No reviews yet.</p>}
 
         <div className="space-y-4">
@@ -92,30 +92,33 @@ export default function ProductDetailsPage() {
                 {new Date(review.createdAt).toLocaleDateString()}
               </p>
 
-              {/* EDIT / DELETE */}
-              <div className="mt-2 flex gap-2">
-                <button
-                  onClick={() => {
-                    const newComment = prompt("Edit review:", review.comment);
-                    if (newComment)
-                      updateReview(review.id, {
-                        rating: review.rating,
-                        comment: newComment,
-                      });
-                  }}
-                  className="text-blue-500"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => {
-                    if (confirm("Delete review?")) deleteReview(review.id);
-                  }}
-                  className="text-red-500"
-                >
-                  Delete
-                </button>
-              </div>
+              {/* EDIT / DELETE — only show for current user */}
+              {currentUser?.id === review.user.id && (
+                <div className="mt-2 flex gap-2">
+                  <button
+                    onClick={() => {
+                      const newComment = prompt("Edit review:", review.comment);
+                      if (newComment) {
+                        updateReview(review.id, {
+                          rating: review.rating,
+                          comment: newComment,
+                        });
+                      }
+                    }}
+                    className="text-blue-500"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm("Delete review?")) deleteReview(review.id);
+                    }}
+                    className="text-red-500"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -126,7 +129,7 @@ export default function ProductDetailsPage() {
         <h3 className="text-xl font-semibold">Write a Review</h3>
         <form onSubmit={handleSubmitReview} className="space-y-4">
           <div>
-            <label>Rating</label>
+            <label className="block text-sm font-medium">Rating</label>
             <select
               value={rating}
               onChange={(e) => setRating(Number(e.target.value))}
@@ -140,7 +143,7 @@ export default function ProductDetailsPage() {
             </select>
           </div>
           <div>
-            <label>Comment</label>
+            <label className="block text-sm font-medium">Comment</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
